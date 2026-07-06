@@ -25,8 +25,12 @@ export default function App() {
       return (
         <GamePreviewPage
           game={selectedGame}
+          games={registeredGames}
+          isMobile={platform.isMobile}
+          selectedGameId={selectedGame.gameId}
           onBack={() => navigate({ pageName: 'main', gameId: null })}
           onPlay={() => navigate({ pageName: 'game-playing', gameId: selectedGame.gameId })}
+          onSelectGame={(gameId) => navigate({ pageName: 'game-preview', gameId })}
         />
       );
     }

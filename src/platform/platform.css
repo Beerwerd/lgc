@@ -14,7 +14,8 @@
   margin: 0 auto;
 }
 
-.platform-layout--main {
+.platform-layout--main,
+.platform-layout--preview {
   width: 100vw;
   max-width: none;
   margin-inline: calc(50% - 50vw);
@@ -22,10 +23,6 @@
 
 .platform-layout--main .platform-header {
   padding-inline: calc(100% / 16);
-}
-
-.platform-layout--preview {
-  max-width: 720px;
 }
 
 .platform-layout--playing {
@@ -98,28 +95,6 @@ h2 {
   font-size: 1rem;
 }
 
-.game-preview {
-  display: grid;
-  gap: 14px;
-}
-
-.game-preview__media {
-  overflow: hidden;
-  width: 100%;
-  aspect-ratio: 1;
-  border: 1px solid color-mix(in srgb, var(--game-accent), transparent 48%);
-  border-radius: 8px;
-  background: rgba(12, 19, 24, 0.64);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
-}
-
-.game-preview__media img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .catalog {
   display: grid;
   gap: 10px;
@@ -128,6 +103,7 @@ h2 {
 .catalog-track {
   --catalog-gap: 16px;
   --catalog-cell-size: calc((87.5vw - 208px) / 14);
+  --catalog-grid-left: calc(100vw / 16);
 
   display: grid;
   grid-template-columns: repeat(14, minmax(0, 1fr));
@@ -227,6 +203,121 @@ h2 {
   transform: translateY(0);
 }
 
+.preview-title-tile,
+.preview-media-tile {
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid rgba(245, 247, 242, 0.14);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0px 7px 10px 4px #5d6b844d;
+}
+
+.preview-media-tile {
+  display: grid;
+  padding: 0;
+  background: rgba(12, 19, 24, 0.64);
+}
+
+.app-icon-tile-slot {
+  grid-column: span 1;
+  grid-row: span 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.app-icon-tile {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  left: var(--catalog-grid-left);
+  z-index: 10;
+  display: grid;
+  width: var(--catalog-cell-size);
+  height: var(--catalog-cell-size);
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(245, 247, 242, 0.14);
+  border-radius: 16px;
+  background: rgba(12, 19, 24, 0.64);
+  box-shadow: 0px 7px 10px 4px #5d6b844d;
+}
+
+.app-icon-tile img,
+.preview-media-tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-title-tile {
+  display: grid;
+  grid-column: span 2;
+  grid-row: span 1;
+  align-items: center;
+  padding: 10px 14px;
+  color: #10181f;
+  background: #fffaf0;
+}
+
+.preview-title-tile h1 {
+  color: inherit;
+  overflow-wrap: anywhere;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.preview-media-tile {
+  position: relative;
+  grid-column: 1 / span 3;
+  grid-row: span 3;
+  color: #10181f;
+  cursor: pointer;
+}
+
+.preview-media-tile::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: rgba(12, 19, 24, 0.08);
+  transition: background 150ms ease;
+}
+
+.preview-media-tile:hover::after,
+.preview-media-tile:focus-visible::after {
+  background: rgba(12, 19, 24, 0);
+}
+
+.preview-media-tile__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  display: grid;
+  width: 68px;
+  height: 68px;
+  place-items: center;
+  border-radius: 999px;
+  background: #fffaf0;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.34),
+    0 0 0 8px rgba(245, 247, 242, 0.22);
+  transform: translate(-50%, -50%);
+  transition:
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.preview-media-tile:hover .preview-media-tile__play,
+.preview-media-tile:focus-visible .preview-media-tile__play {
+  box-shadow:
+    0 16px 38px rgba(0, 0, 0, 0.38),
+    0 0 0 10px rgba(245, 247, 242, 0.26);
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
 .game-frame {
   display: grid;
   min-width: 0;
@@ -322,6 +413,7 @@ h2 {
     --catalog-cell-size: calc(
       (100vw - 32px - var(--catalog-gap) - var(--catalog-gap)) / 3.6667
     );
+    --catalog-grid-left: calc(16px + var(--catalog-cell-size) / 3);
 
     grid-template-columns: repeat(3, var(--catalog-cell-size));
     padding-inline: calc(var(--catalog-cell-size) / 3);
@@ -371,6 +463,10 @@ h2 {
 
   .platform-layout {
     grid-template-rows: auto auto auto;
+  }
+
+  .app-icon-tile {
+    top: 28px;
   }
 
   .game-frame__host {

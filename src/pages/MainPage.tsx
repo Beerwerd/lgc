@@ -1,3 +1,4 @@
+import { AppIconTile } from "../components/AppIconTile";
 import { GameCatalog } from "../components/GameCatalog";
 import type { GameId, RegisteredGame } from "../platform/types";
 
@@ -21,6 +22,7 @@ export function MainPage({
         isMobile={isMobile}
         selectedGameId={selectedGameId}
         onSelectGame={onSelectGame}
+        leadingElement={<AppIconTile />}
       />
     </div>
   );
