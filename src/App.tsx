@@ -43,11 +43,12 @@ export default function App() {
     return (
       <MainPage
         games={registeredGames}
+        isMobile={platform.isMobile}
         selectedGameId={selectedGame.gameId}
         onSelectGame={(gameId) => navigate({ pageName: 'game-preview', gameId })}
       />
     );
-  }, [navigate, route.pageName, selectedGame]);
+  }, [navigate, platform.isMobile, route.pageName, selectedGame]);
 
   return (
     <main className="app-shell" data-platform={platform.kind}>

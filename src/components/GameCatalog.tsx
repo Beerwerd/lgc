@@ -4,12 +4,14 @@ import type { GameId, RegisteredGame } from "../platform/types";
 
 type GameCatalogProps = {
   games: RegisteredGame[];
+  isMobile: boolean;
   selectedGameId: GameId;
   onSelectGame: (gameId: GameId) => void;
 };
 
 type CatalogCardProps = {
   game: RegisteredGame;
+  isMobile: boolean;
   isSelected: boolean;
   onSelectGame: (gameId: GameId) => void;
 };
@@ -20,11 +22,22 @@ const getAccentStyle = (game: RegisteredGame) =>
     "--game-size": Math.max(1, Math.min(14, Math.floor(game.catalog.size ?? 1))),
   } as CSSProperties);
 
-function CatalogCard({ game, isSelected, onSelectGame }: CatalogCardProps) {
+function CatalogCard({ game, isMobile, isSelected, onSelectGame }: CatalogCardProps) {
   const [isPreviewing, setIsPreviewing] = useState(false);
-  const previewImage = isPreviewing
+  const shouldPreview = !isMobile && isPreviewing;
+  const previewImage = shouldPreview
     ? game.catalog.previewGif
     : game.catalog.coverImage;
+
+  const startPreview = () => {
+    if (!isMobile) {
+      setIsPreviewing(true);
+    }
+  };
+
+  const stopPreview = () => {
+    setIsPreviewing(false);
+  };
 
   return (
     <button
@@ -33,10 +46,10 @@ function CatalogCard({ game, isSelected, onSelectGame }: CatalogCardProps) {
       style={getAccentStyle(game)}
       aria-pressed={isSelected}
       onClick={() => onSelectGame(game.gameId)}
-      onFocus={() => setIsPreviewing(true)}
-      onBlur={() => setIsPreviewing(false)}
-      onPointerEnter={() => setIsPreviewing(true)}
-      onPointerLeave={() => setIsPreviewing(false)}
+      onFocus={startPreview}
+      onBlur={stopPreview}
+      onPointerEnter={startPreview}
+      onPointerLeave={stopPreview}
     >
       <span className="catalog-card__media">
         <img
@@ -44,7 +57,7 @@ function CatalogCard({ game, isSelected, onSelectGame }: CatalogCardProps) {
           alt={`${game.name} preview`}
           draggable="false"
         />
-        <span className="catalog-card__name" aria-hidden={!isPreviewing}>
+        <span className="catalog-card__name" aria-hidden={!shouldPreview}>
           {game.name}
         </span>
       </span>
@@ -54,6 +67,7 @@ function CatalogCard({ game, isSelected, onSelectGame }: CatalogCardProps) {
 
 export function GameCatalog({
   games,
+  isMobile,
   selectedGameId,
   onSelectGame,
 }: GameCatalogProps) {
@@ -64,6 +78,7 @@ export function GameCatalog({
           <CatalogCard
             key={game.gameId}
             game={game}
+            isMobile={isMobile}
             isSelected={game.gameId === selectedGameId}
             onSelectGame={onSelectGame}
           />

@@ -3,25 +3,22 @@ import type { GameId, RegisteredGame } from "../platform/types";
 
 type MainPageProps = {
   games: RegisteredGame[];
+  isMobile: boolean;
   selectedGameId: GameId;
   onSelectGame: (gameId: GameId) => void;
 };
 
 export function MainPage({
   games,
+  isMobile,
   selectedGameId,
   onSelectGame,
 }: MainPageProps) {
   return (
-    <div className="platform-layout">
-      <header className="platform-header">
-        <div>
-          <h1>Logic Arcade</h1>
-        </div>
-      </header>
-
+    <div className="platform-layout platform-layout--main">
       <GameCatalog
         games={games}
+        isMobile={isMobile}
         selectedGameId={selectedGameId}
         onSelectGame={onSelectGame}
       />
