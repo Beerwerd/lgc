@@ -1,91 +1,161 @@
-import { useState } from 'react';
+import { useCallback } from 'react';
 import type { GameModule, GameRuntimeProps } from '../../platform/types';
+import {
+  drawFittedText,
+  fillRoundedRect,
+  strokeRoundedRect,
+  useCanvasRenderer,
+} from '../../platform/canvas';
 import './zebra.css';
 
-type ZebraAttribute = 'color' | 'drink' | 'pet';
+const houseColors = ['#c75146', '#4d8fcf', '#43b996', '#f4e6bf', '#e0b84f'];
+const houseLabels = ['Red', 'Tea', 'Fox', 'Milk', 'Zebra'];
 
-type House = Record<ZebraAttribute, string>;
+function paintZebraScene(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  phase: number,
+) {
+  const sky = ctx.createLinearGradient(0, 0, width, height);
+  sky.addColorStop(0, '#253845');
+  sky.addColorStop(1, '#10181f');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, width, height);
 
-const categories: Array<{
-  key: ZebraAttribute;
-  label: string;
-  values: string[];
-}> = [
-  {
-    key: 'color',
-    label: 'Color',
-    values: ['Red', 'Blue', 'Green', 'Ivory', 'Yellow'],
-  },
-  {
-    key: 'drink',
-    label: 'Drink',
-    values: ['Tea', 'Water', 'Milk', 'Coffee', 'Juice'],
-  },
-  {
-    key: 'pet',
-    label: 'Pet',
-    values: ['Fox', 'Horse', 'Snail', 'Dog', 'Zebra'],
-  },
-];
+  const groundHeight = Math.max(70, height * 0.2);
+  ctx.fillStyle = '#1f332c';
+  ctx.fillRect(0, height - groundHeight, width, groundHeight);
 
-const createInitialHouses = (): House[] => [
-  { color: 'Red', drink: 'Tea', pet: 'Fox' },
-  { color: 'Blue', drink: 'Water', pet: 'Horse' },
-  { color: 'Green', drink: 'Milk', pet: 'Snail' },
-  { color: 'Ivory', drink: 'Coffee', pet: 'Dog' },
-  { color: 'Yellow', drink: 'Juice', pet: 'Zebra' },
-];
+  const padding = Math.max(14, width * 0.035);
+  const gap = Math.max(8, width * 0.012);
+  const availableWidth = width - padding * 2 - gap * 4;
+  const houseWidth = Math.max(34, availableWidth / 5);
+  const houseHeight = Math.min(height * 0.52, houseWidth * 1.18);
+  const baseY = height - groundHeight + 10;
+  const bodyY = baseY - houseHeight;
+
+  houseColors.forEach((color, index) => {
+    const x = padding + index * (houseWidth + gap);
+    const wave = Math.sin(phase * 1.6 + index * 0.65) * 4;
+    const roofHeight = houseHeight * 0.25;
+
+    ctx.beginPath();
+    ctx.moveTo(x + houseWidth / 2, bodyY - roofHeight + wave);
+    ctx.lineTo(x + houseWidth + 5, bodyY + wave);
+    ctx.lineTo(x - 5, bodyY + wave);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    fillRoundedRect(
+      ctx,
+      {
+        x,
+        y: bodyY + wave,
+        width: houseWidth,
+        height: houseHeight,
+      },
+      8,
+      'rgba(245, 247, 242, 0.92)',
+    );
+    strokeRoundedRect(
+      ctx,
+      {
+        x,
+        y: bodyY + wave,
+        width: houseWidth,
+        height: houseHeight,
+      },
+      8,
+      'rgba(16, 24, 31, 0.24)',
+      2,
+    );
+
+    ctx.fillStyle = color;
+    ctx.fillRect(
+      x + houseWidth * 0.18,
+      bodyY + houseHeight * 0.38 + wave,
+      houseWidth * 0.22,
+      houseHeight * 0.2,
+    );
+    ctx.fillRect(
+      x + houseWidth * 0.6,
+      bodyY + houseHeight * 0.38 + wave,
+      houseWidth * 0.22,
+      houseHeight * 0.2,
+    );
+
+    fillRoundedRect(
+      ctx,
+      {
+        x: x + houseWidth * 0.38,
+        y: bodyY + houseHeight * 0.68 + wave,
+        width: houseWidth * 0.24,
+        height: houseHeight * 0.32,
+      },
+      5,
+      '#10181f',
+    );
+
+    drawFittedText(
+      ctx,
+      String(index + 1),
+      x + houseWidth / 2,
+      bodyY + houseHeight * 0.17 + wave,
+      houseWidth * 0.7,
+      24,
+      12,
+      { color: '#10181f' },
+    );
+
+    drawFittedText(
+      ctx,
+      houseLabels[index],
+      x + houseWidth / 2,
+      bodyY + houseHeight + 22 + wave,
+      houseWidth,
+      16,
+      9,
+      { color: '#fffaf0', weight: 800 },
+    );
+  });
+
+  drawFittedText(
+    ctx,
+    'Zebra canvas mock',
+    width / 2,
+    Math.max(28, height * 0.09),
+    width * 0.72,
+    30,
+    14,
+  );
+}
 
 function ZebraGame({ resources }: GameRuntimeProps) {
-  const [houses, setHouses] = useState(() =>
-    resources.getPreference('houses', createInitialHouses()),
+  const canvasRef = useCanvasRenderer(paintZebraScene, {
+    animated: true,
+    blockPageGestures: true,
+  });
+
+  const emitCanvasPress = useCallback(
+    () =>
+      resources.emit({
+        type: 'zebra.canvas.press',
+        payload: {
+          mocked: true,
+        },
+      }),
+    [resources],
   );
 
-  const cycleAttribute = (houseIndex: number, category: (typeof categories)[number]) => {
-    setHouses((currentHouses) => {
-      const nextHouses = currentHouses.map((house) => ({ ...house }));
-      const currentValue = nextHouses[houseIndex][category.key];
-      const valueIndex = category.values.indexOf(currentValue);
-      const nextValue = category.values[(valueIndex + 1) % category.values.length];
-
-      nextHouses[houseIndex][category.key] = nextValue;
-      resources.setPreference('houses', nextHouses);
-      resources.emit({
-        type: 'zebra.attribute.change',
-        payload: {
-          house: houseIndex + 1,
-          attribute: category.key,
-          value: nextValue,
-        },
-      });
-
-      return nextHouses;
-    });
-  };
-
   return (
-    <div className="zebra-game">
-      <div className="zebra-street" aria-label="Zebra puzzle houses">
-        {houses.map((house, houseIndex) => (
-          <section className="zebra-house" key={houseIndex} aria-label={`House ${houseIndex + 1}`}>
-            <span className="zebra-house__roof" />
-            <strong>{houseIndex + 1}</strong>
-
-            {categories.map((category) => (
-              <button
-                className={`zebra-chip zebra-chip--${category.key}`}
-                type="button"
-                key={category.key}
-                onClick={() => cycleAttribute(houseIndex, category)}
-              >
-                <span>{category.label}</span>
-                <b>{house[category.key]}</b>
-              </button>
-            ))}
-          </section>
-        ))}
-      </div>
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="game-canvas zebra-game-canvas"
+      aria-label="Zebra canvas mock game"
+      onPointerDown={emitCanvasPress}
+    />
   );
 }
 

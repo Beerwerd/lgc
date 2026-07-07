@@ -25,7 +25,10 @@ type CatalogCardProps = {
 const getAccentStyle = (game: RegisteredGame) =>
   ({
     "--game-accent": game.catalog.accent,
-    "--game-size": Math.max(1, Math.min(14, Math.floor(game.catalog.size ?? 1))),
+    "--game-size": Math.max(
+      1,
+      Math.min(14, Math.floor(game.catalog.size ?? 1))
+    ),
   } as CSSProperties);
 
 export function GameGrid({ children, className }: GameGridProps) {
@@ -34,7 +37,12 @@ export function GameGrid({ children, className }: GameGridProps) {
   return <div className={gridClassName}>{children}</div>;
 }
 
-function CatalogCard({ game, isMobile, isSelected, onSelectGame }: CatalogCardProps) {
+function CatalogCard({
+  game,
+  isMobile,
+  isSelected,
+  onSelectGame,
+}: CatalogCardProps) {
   const [isPreviewing, setIsPreviewing] = useState(false);
   const shouldPreview = !isMobile && isPreviewing;
   const previewImage = shouldPreview

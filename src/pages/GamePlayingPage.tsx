@@ -1,4 +1,5 @@
 import { ArrowLeft } from 'lucide-react';
+import { BackAppButton } from '../components/backAppButton';
 import { GameFrame } from '../components/GameFrame';
 import type { RegisteredGame } from '../platform/types';
 
@@ -23,6 +24,8 @@ export function GamePlayingPage({ game, onBack }: GamePlayingPageProps) {
       </header>
 
       <GameFrame game={game} />
+
+      <BackAppButton onClick={onBack} />
     </div>
   );
 }

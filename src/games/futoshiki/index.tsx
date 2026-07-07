@@ -1,121 +1,137 @@
-import { useState } from 'react';
+import { useCallback } from 'react';
 import type { GameModule, GameRuntimeProps } from '../../platform/types';
+import {
+  drawFittedText,
+  fillRoundedRect,
+  strokeRoundedRect,
+  useCanvasRenderer,
+} from '../../platform/canvas';
 import './futoshiki.css';
 
-const size = 4;
-const numberRange = [1, 2, 3, 4];
-const givens = new Map([
-  ['0:0', 3],
-  ['1:2', 1],
-  ['2:3', 3],
-  ['3:1', 4],
-]);
+const boardValues = [
+  [3, 0, 0, 0],
+  [0, 0, 1, 0],
+  [0, 0, 0, 3],
+  [0, 4, 0, 0],
+];
 
-const horizontalConstraints = new Map([
-  ['0:0', '>'],
-  ['0:2', '>'],
-  ['1:0', '<'],
-  ['2:1', '<'],
-  ['3:2', '<'],
-]);
+const inequalities = [
+  { row: 0, column: 0, sign: '>' },
+  { row: 0, column: 2, sign: '>' },
+  { row: 1, column: 0, sign: '<' },
+  { row: 2, column: 1, sign: '<' },
+  { row: 3, column: 2, sign: '<' },
+];
 
-const verticalConstraints = new Map([
-  ['0:1', '<'],
-  ['0:3', '>'],
-  ['1:0', '>'],
-  ['2:2', '<'],
-]);
+function paintFutoshikiBoard(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  phase: number,
+) {
+  const background = ctx.createLinearGradient(0, 0, width, height);
+  background.addColorStop(0, '#19323a');
+  background.addColorStop(1, '#10181f');
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, width, height);
 
-const createInitialBoard = () =>
-  Array.from({ length: size }, (_, rowIndex) =>
-    Array.from({ length: size }, (_, columnIndex) => givens.get(`${rowIndex}:${columnIndex}`) ?? 0),
+  const boardSize = Math.min(width, height) * 0.72;
+  const boardX = (width - boardSize) / 2;
+  const boardY = (height - boardSize) / 2 + Math.sin(phase * 1.4) * 5;
+  const cellGap = boardSize * 0.035;
+  const cellSize = (boardSize - cellGap * 3) / 4;
+
+  fillRoundedRect(
+    ctx,
+    {
+      x: boardX - cellGap,
+      y: boardY - cellGap,
+      width: boardSize + cellGap * 2,
+      height: boardSize + cellGap * 2,
+    },
+    12,
+    'rgba(245, 247, 242, 0.08)',
   );
+
+  boardValues.forEach((row, rowIndex) => {
+    row.forEach((value, columnIndex) => {
+      const x = boardX + columnIndex * (cellSize + cellGap);
+      const y = boardY + rowIndex * (cellSize + cellGap);
+      const isGiven = value > 0;
+
+      fillRoundedRect(
+        ctx,
+        { x, y, width: cellSize, height: cellSize },
+        8,
+        isGiven ? '#43b996' : 'rgba(245, 247, 242, 0.1)',
+      );
+      strokeRoundedRect(
+        ctx,
+        { x, y, width: cellSize, height: cellSize },
+        8,
+        'rgba(245, 247, 242, 0.22)',
+        2,
+      );
+
+      if (value) {
+        drawFittedText(
+          ctx,
+          String(value),
+          x + cellSize / 2,
+          y + cellSize / 2,
+          cellSize * 0.65,
+          34,
+          16,
+          { color: '#10181f' },
+        );
+      }
+    });
+  });
+
+  inequalities.forEach(({ row, column, sign }) => {
+    const x = boardX + column * (cellSize + cellGap) + cellSize + cellGap / 2;
+    const y = boardY + row * (cellSize + cellGap) + cellSize / 2;
+
+    drawFittedText(ctx, sign, x, y, cellGap * 1.8, 22, 10, {
+      color: '#f0cc72',
+    });
+  });
+
+  drawFittedText(
+    ctx,
+    'Futoshiki canvas mock',
+    width / 2,
+    Math.max(28, height * 0.09),
+    width * 0.76,
+    30,
+    14,
+  );
+}
 
 function FutoshikiGame({ resources }: GameRuntimeProps) {
-  const [board, setBoard] = useState(() =>
-    resources.getPreference('board', createInitialBoard()),
+  const canvasRef = useCanvasRenderer(paintFutoshikiBoard, {
+    animated: true,
+    blockPageGestures: true,
+  });
+
+  const emitCanvasPress = useCallback(
+    () =>
+      resources.emit({
+        type: 'futoshiki.canvas.press',
+        payload: {
+          mocked: true,
+        },
+      }),
+    [resources],
   );
 
-  const changeCell = (rowIndex: number, columnIndex: number) => {
-    if (givens.has(`${rowIndex}:${columnIndex}`)) {
-      return;
-    }
-
-    setBoard((currentBoard) => {
-      const nextBoard = currentBoard.map((row) => [...row]);
-      const currentValue = nextBoard[rowIndex][columnIndex];
-      const nextValue = currentValue === numberRange.length ? 0 : currentValue + 1;
-
-      nextBoard[rowIndex][columnIndex] = nextValue;
-      resources.setPreference('board', nextBoard);
-      resources.emit({
-        type: 'futoshiki.cell.change',
-        payload: {
-          row: rowIndex,
-          column: columnIndex,
-          value: nextValue,
-        },
-      });
-
-      return nextBoard;
-    });
-  };
-
   return (
-    <div className="futoshiki-game">
-      <div className="futoshiki-board" aria-label="Futoshiki board">
-        {Array.from({ length: size * 2 - 1 }, (_, visualRow) =>
-          Array.from({ length: size * 2 - 1 }, (_, visualColumn) => {
-            const key = `${visualRow}:${visualColumn}`;
-
-            if (visualRow % 2 === 0 && visualColumn % 2 === 0) {
-              const rowIndex = visualRow / 2;
-              const columnIndex = visualColumn / 2;
-              const isGiven = givens.has(`${rowIndex}:${columnIndex}`);
-              const value = board[rowIndex][columnIndex];
-
-              return (
-                <button
-                  className={`futoshiki-cell${isGiven ? ' is-given' : ''}`}
-                  type="button"
-                  key={key}
-                  onClick={() => changeCell(rowIndex, columnIndex)}
-                  aria-label={`Row ${rowIndex + 1}, column ${columnIndex + 1}`}
-                >
-                  {value || ''}
-                </button>
-              );
-            }
-
-            if (visualRow % 2 === 0) {
-              const rowIndex = visualRow / 2;
-              const columnIndex = (visualColumn - 1) / 2;
-              const sign = horizontalConstraints.get(`${rowIndex}:${columnIndex}`);
-
-              return (
-                <span className="futoshiki-constraint" key={key} aria-hidden="true">
-                  {sign}
-                </span>
-              );
-            }
-
-            if (visualColumn % 2 === 0) {
-              const rowIndex = (visualRow - 1) / 2;
-              const columnIndex = visualColumn / 2;
-              const sign = verticalConstraints.get(`${rowIndex}:${columnIndex}`);
-
-              return (
-                <span className="futoshiki-constraint" key={key} aria-hidden="true">
-                  {sign ? (sign === '<' ? 'v' : '^') : ''}
-                </span>
-              );
-            }
-
-            return <span className="futoshiki-spacer" key={key} aria-hidden="true" />;
-          }),
-        )}
-      </div>
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="game-canvas futoshiki-game-canvas"
+      aria-label="Futoshiki canvas mock game"
+      onPointerDown={emitCanvasPress}
+    />
   );
 }
 
