@@ -6,6 +6,8 @@ import {
   strokeRoundedRect,
   useCanvasRenderer,
 } from '../../platform/canvas';
+import coverImage from './cover.png';
+import previewGif from './preview.gif';
 import './zebra.css';
 
 const houseColors = ['#c75146', '#4d8fcf', '#43b996', '#f4e6bf', '#e0b84f'];
@@ -162,8 +164,8 @@ function ZebraGame({ resources }: GameRuntimeProps) {
 const zebraGame: GameModule = {
   name: 'Zebra',
   catalog: {
-    coverImage: '/games/zebra-cover.png',
-    previewGif: '/games/zebra-preview.gif',
+    coverImage,
+    previewGif,
     accent: '#e0b84f',
     size: 3,
   },

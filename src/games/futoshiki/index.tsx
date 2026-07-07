@@ -6,7 +6,9 @@ import {
   strokeRoundedRect,
   useCanvasRenderer,
 } from '../../platform/canvas';
+import coverImage from './cover.png';
 import './futoshiki.css';
+import previewGif from './preview.gif';
 
 const boardValues = [
   [3, 0, 0, 0],
@@ -138,8 +140,8 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
 const futoshikiGame: GameModule = {
   name: 'Futoshiki',
   catalog: {
-    coverImage: '/games/futoshiki-cover.png',
-    previewGif: '/games/futoshiki-preview.gif',
+    coverImage,
+    previewGif,
     accent: '#43b996',
     size: 2,
   },
