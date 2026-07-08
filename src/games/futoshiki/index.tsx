@@ -73,6 +73,45 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
     }
   }, [isLevelComplete]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        (event.target instanceof HTMLElement && event.target.isContentEditable) ||
+        isHelpModalOpen ||
+        isCompletionModalOpen
+      ) {
+        return;
+      }
+
+      if (event.key >= "1" && event.key <= "5") {
+        event.preventDefault();
+        selectNumber(Number(event.key));
+        return;
+      }
+
+      if (event.key === "Delete" || event.key === "Backspace") {
+        event.preventDefault();
+        clearSelectedCell();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [
+    clearSelectedCell,
+    isCompletionModalOpen,
+    isHelpModalOpen,
+    selectNumber,
+  ]);
+
   const startNextLevel = () => {
     resetLevel();
     setIsCompletionModalOpen(false);
