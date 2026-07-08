@@ -1,30 +1,109 @@
-type Difficulty = 'easy' | 'hard';
+import { useState } from "react";
+import easyImage from "../assets/easy.png";
+import easyDisabledImage from "../assets/easy_disabled.png";
+import hardImage from "../assets/hard.png";
+import hardDisabledImage from "../assets/hard_disabled.png";
+import { Button } from "./Button";
+
+type Difficulty = "easy" | "hard";
 
 type DifficultySelectorProps = {
   activeDifficulty?: Difficulty;
+  onChange?: (difficulty: Difficulty) => void;
 };
 
-const difficulties: Array<{ label: string; value: Difficulty }> = [
-  { label: 'Easy', value: 'easy' },
-  { label: 'Hard', value: 'hard' },
+const difficultyImageStyle = {
+  display: "block",
+  width: "auto",
+  height: "clamp(18px, 3.2vw, 28px)",
+  maxWidth: "100%",
+} as const;
+
+const inactiveDifficultyImageStyle = {
+  ...difficultyImageStyle,
+  height: "clamp(18px, 3.2vw, 28px)",
+} as const;
+
+const difficulties: Array<{
+  activeImage: string;
+  inactiveImage: string;
+  label: string;
+  value: Difficulty;
+}> = [
+  {
+    activeImage: easyImage,
+    inactiveImage: easyDisabledImage,
+    label: "Easy",
+    value: "easy",
+  },
+  {
+    activeImage: hardImage,
+    inactiveImage: hardDisabledImage,
+    label: "Hard",
+    value: "hard",
+  },
 ];
 
-export function DifficultySelector({ activeDifficulty = 'easy' }: DifficultySelectorProps) {
-  return (
-    <div className="futoshiki-level-selector">
-      {difficulties.map((difficulty) => {
-        const isActive = difficulty.value === activeDifficulty;
+export function DifficultySelector({
+  activeDifficulty,
+  onChange,
+}: DifficultySelectorProps) {
+  const [selectedDifficulty, setSelectedDifficulty] =
+    useState<Difficulty>("easy");
+  const resolvedDifficulty = activeDifficulty ?? selectedDifficulty;
+  const activeDifficultyItem =
+    difficulties.find((difficulty) => difficulty.value === resolvedDifficulty) ??
+    difficulties[0];
 
-        return (
-          <button
-            className={isActive ? 'is-active' : ''}
-            key={difficulty.value}
-            type="button"
-          >
-            {difficulty.label}
-          </button>
-        );
-      })}
+  const selectDifficulty = (difficulty: Difficulty) => {
+    setSelectedDifficulty(difficulty);
+    onChange?.(difficulty);
+  };
+
+  return (
+    <div
+      className="futoshiki-level-selector"
+      role="group"
+      aria-label="Difficulty"
+    >
+      {difficulties.map((difficulty) => (
+        <button
+          aria-label={difficulty.label}
+          aria-pressed={difficulty.value === resolvedDifficulty}
+          className="futoshiki-level-selector__option"
+          key={difficulty.value}
+          type="button"
+          onClick={() => selectDifficulty(difficulty.value)}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <img
+            src={difficulty.inactiveImage}
+            alt=""
+            aria-hidden="true"
+            style={inactiveDifficultyImageStyle}
+          />
+        </button>
+      ))}
+      <div
+        className={`futoshiki-level-selector__active${
+          resolvedDifficulty === "hard" ? " is-hard" : ""
+        }`}
+      >
+        <Button
+          aria-label={activeDifficultyItem.label}
+          aria-pressed
+          size="stretch"
+          variant={resolvedDifficulty === "easy" ? "green" : "orange"}
+          onClick={() => selectDifficulty(activeDifficultyItem.value)}
+        >
+          <img
+            src={activeDifficultyItem.activeImage}
+            alt=""
+            aria-hidden="true"
+            style={difficultyImageStyle}
+          />
+        </Button>
+      </div>
     </div>
   );
 }

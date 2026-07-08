@@ -4,10 +4,12 @@ import type { GameModule, GameRuntimeProps } from "../../platform/types";
 import clearIconImage from "./assets/clear_icon.png";
 import newIconImage from "./assets/new_icon.png";
 import notesIconImage from "./assets/notes_icon.png";
+import questionIconImage from "./assets/question_icon.png";
 import resetIconImage from "./assets/reset_icon.png";
 import coverImage from "./cover.png";
 import { ActionButton } from "./components/ActionButton";
 import { Arrow } from "./components/Arrow";
+import { Button } from "./components/Button";
 import { DifficultySelector } from "./components/DifficultySelector";
 import { GameName } from "./components/GameName";
 import { Tail } from "./components/Tail";
@@ -89,15 +91,22 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
       }
     >
       <section className="futoshiki-block futoshiki-title-block">
-        <div className="futoshiki-title-row">
-          <GameName onHelpClick={openHelpModal} />
-          <DifficultySelector />
+        <div className="futoshiki-title-logo-row">
+          <GameName />
         </div>
       </section>
 
       <div className="futoshiki-spacer" />
 
       <section className="futoshiki-block futoshiki-board-block">
+        <div className="futoshiki-game-controls-row">
+          <ActionButton
+            icon={questionIconImage}
+            variant="blue"
+            onClick={openHelpModal}
+          />
+          <DifficultySelector />
+        </div>
         <div className="futoshiki-board-mock">
           {boardRows.flatMap((row) =>
             row.map(({ key, rowIndex, columnIndex }) => {
@@ -185,7 +194,6 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
           <ActionButton
             icon={resetIconImage}
             variant="yellow"
-            className="futoshiki-board-actions__button--reset"
             onClick={resetBoard}
           />
         </div>
@@ -206,7 +214,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
           <ActionButton
             icon={clearIconImage}
             variant="red"
-            className="futoshiki-action-button futoshiki-action-button--clear"
+            fullWidth
             onClick={clearSelectedCell}
           />
         </div>
@@ -262,13 +270,9 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
             onPointerDown={(event) => event.stopPropagation()}
           >
             <h4>Completed!</h4>
-            <button
-              className="futoshiki-complete-modal__next"
-              type="button"
-              onClick={startNextLevel}
-            >
+            <Button variant="green" onClick={startNextLevel}>
               Next
-            </button>
+            </Button>
           </section>
         </div>
       )}

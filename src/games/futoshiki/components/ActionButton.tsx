@@ -1,64 +1,29 @@
-import type { CSSProperties } from "react";
-import blueKeyImage from "../assets/blue_key.png";
-import greenKeyImage from "../assets/green_key.png";
-import orangeKeyImage from "../assets/orange_key.png";
-import purpleKeyImage from "../assets/purple_key.png";
-import redKeyImage from "../assets/red_key.png";
-import yellowKeyImage from "../assets/yellow_key.png";
-
-export type ActionButtonVariant =
-  | "blue"
-  | "green"
-  | "orange"
-  | "red"
-  | "yellow"
-  | "purple";
+import type { ReactNode } from "react";
+import { Button, type ButtonVariant } from "./Button";
 
 export type ActionButtonProps = {
-  icon: string;
-  className?: string;
-  rounded?: boolean;
-  variant?: ActionButtonVariant;
+  children?: ReactNode;
+  icon?: string;
+  fullWidth?: boolean;
+  variant: ButtonVariant;
   onClick?: () => void;
 };
 
-const actionButtonImages: Record<ActionButtonVariant, string> = {
-  blue: blueKeyImage,
-  green: greenKeyImage,
-  orange: orangeKeyImage,
-  red: redKeyImage,
-  yellow: yellowKeyImage,
-  purple: purpleKeyImage,
-};
-
 export function ActionButton({
+  children,
   icon,
-  className = "",
-  rounded = false,
-  variant = "green",
+  fullWidth = false,
+  variant,
   onClick,
 }: ActionButtonProps) {
-  const resolvedClassName = `futoshiki-board-actions__button ${className} ${
-    rounded ? " is-rounded" : ""
-  }`.trim();
-  const style = {
-    "--futoshiki-action-image": `url(${actionButtonImages[variant]})`,
-    "--futoshiki-action-icon": `url(${icon})`,
-  } as CSSProperties;
-
   return (
-    <button
-      className={resolvedClassName || undefined}
-      style={style}
-      type="button"
+    <Button
+      icon={icon}
+      size={fullWidth ? "fill" : "default"}
+      variant={variant}
       onClick={onClick}
-      onPointerDown={(event) => event.stopPropagation()}
     >
-      <span className="futoshiki-game-button__square">
-        <span className="futoshiki-game-button__inner-square">
-          <span className="futoshiki-action-button__icon" aria-hidden="true" />
-        </span>
-      </span>
-    </button>
+      {children}
+    </Button>
   );
 }

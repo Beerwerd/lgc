@@ -42,20 +42,31 @@
 }
 
 .futoshiki-title-block {
-  min-height: 96px;
+  width: min(100%, 640px);
+  min-height: 76px;
   align-items: center;
-  padding: 28px clamp(16px, 4vw, 30px) 8px;
+  padding: 0 clamp(0px, 2vw, 18px) 0;
   border: 0;
   background: transparent;
   box-shadow: none;
 }
 
-.futoshiki-title-row {
+.futoshiki-title-logo-row,
+.futoshiki-game-controls-row {
   display: flex;
+  width: 100%;
   min-width: 0;
   align-items: center;
+}
+
+.futoshiki-title-logo-row {
+  justify-content: center;
+  transform: translateY(-14px);
+}
+
+.futoshiki-game-controls-row {
   justify-content: space-between;
-  gap: clamp(18px, 6vw, 56px);
+  gap: clamp(14px, 4vw, 32px);
 }
 
 .futoshiki-title-name {
@@ -73,51 +84,60 @@
   flex: 0 1 auto;
 }
 
-.futoshiki-help-button {
+.futoshiki-level-selector {
+  position: relative;
   display: grid;
   flex: 0 0 auto;
-  width: clamp(30px, 4.4vw, 42px);
-  height: clamp(30px, 4.4vw, 42px);
-  place-items: center;
+  width: clamp(142px, 24vw, 190px);
+  height: clamp(48px, 7.8vw, 58px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: 0;
   padding: 0;
-  border: 0;
-  color: rgba(23, 21, 18, 0.5);
-  background: transparent;
+  border-radius: clamp(12px, 2.2vw, 14px);
+  background: #512316;
+  box-shadow:
+    0 0 0 clamp(3px, 0.7vw, 5px) rgba(255, 255, 255, 0.2),
+    inset 0 2px 7px rgba(0, 0, 0, 0.36),
+    inset 0 -2px 4px rgba(255, 255, 255, 0.08),
+    0 4px 8px rgba(23, 21, 18, 0.18);
 }
 
-.futoshiki-level-selector {
-  display: inline-grid;
-  flex: 0 0 auto;
-  grid-template-columns: repeat(2, auto);
-  align-items: end;
-  gap: clamp(18px, 4vw, 34px);
-}
-
-.futoshiki-level-selector button {
-  position: relative;
+.futoshiki-level-selector__active,
+.futoshiki-level-selector__option {
+  display: grid;
   min-width: 0;
-  padding: 0 0 8px;
-  border: 0;
-  color: rgba(23, 21, 18, 0.45);
-  background: transparent;
-  font-size: clamp(1.35rem, 4vw, 2.25rem);
-  font-weight: 750;
-  line-height: 1;
+  height: 100%;
+  place-items: center;
 }
 
-.futoshiki-level-selector button.is-active {
-  color: rgba(23, 21, 18, 0.9);
-}
-
-.futoshiki-level-selector button.is-active::after {
+.futoshiki-level-selector__active {
   position: absolute;
-  right: 0;
+  top: 0;
   bottom: 0;
   left: 0;
-  height: 3px;
-  border-radius: 999px;
-  content: "";
-  background: #5969a5;
+  z-index: 2;
+  width: 50%;
+  transition: transform 180ms ease;
+}
+
+.futoshiki-level-selector__active.is-hard {
+  transform: translateX(100%);
+}
+
+.futoshiki-level-selector__option {
+  position: relative;
+  z-index: 1;
+  padding: 0 clamp(8px, 1.6vw, 12px);
+  border: 0;
+  color: inherit;
+  background: transparent;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.futoshiki-level-selector__option img {
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
 }
 
 .futoshiki-spacer {
@@ -127,8 +147,8 @@
 .futoshiki-board-block {
   width: 100%;
   min-height: clamp(260px, 38vh, 420px);
-  align-content: center;
-  gap: clamp(16px, 3vw, 26px);
+  align-content: start;
+  gap: clamp(12px, 2.4vw, 22px);
   padding-bottom: 0;
   border: 0;
   background: transparent;
@@ -245,131 +265,7 @@
   justify-self: center;
   align-items: center;
   justify-content: space-around;
-}
-
-.futoshiki-board-actions button {
-  display: grid;
-  width: clamp(48px, 10vw, 60px);
-  height: clamp(48px, 10vw, 60px);
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 8px;
-  color: rgba(23, 21, 18, 0.72);
-  background: transparent;
-}
-
-.futoshiki-board-actions button:hover {
-  color: rgba(23, 21, 18, 0.94);
-  background: rgba(23, 21, 18, 0.05);
-}
-
-.futoshiki-help-button,
-.futoshiki-board-actions .futoshiki-board-actions__button,
-.futoshiki-number-line .futoshiki-action-button {
-  --futoshiki-action-size: clamp(48px, 10vw, 60px);
-  --futoshiki-action-image: url("./assets/green_key.png");
-
-  position: relative;
-  z-index: 1;
-  display: flex;
-  width: var(--futoshiki-action-size);
-  height: var(--futoshiki-action-size);
-  min-width: 0;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 1;
-  padding: 0;
-  border: 0;
-  border-radius: 19%;
-  color: rgba(255, 255, 255, 0.94);
-  background: #090101;
-  font-size: 1rem;
-  line-height: 1;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  appearance: none;
-}
-
-.futoshiki-help-button::before,
-.futoshiki-board-actions .futoshiki-board-actions__button::before,
-.futoshiki-number-line .futoshiki-action-button::before {
-  position: absolute;
-  inset: -1px;
-  z-index: -1;
-  border-radius: 19%;
-  content: "";
-  background: rgba(255, 255, 255, 0.2);
-  filter: blur(2px);
-}
-
-.futoshiki-help-button:hover,
-.futoshiki-board-actions .futoshiki-board-actions__button:hover,
-.futoshiki-number-line .futoshiki-action-button:hover {
-  color: #fff;
-  background: #090101;
-}
-
-.futoshiki-help-button:active .futoshiki-game-button__square,
-.futoshiki-board-actions .futoshiki-board-actions__button:active .futoshiki-game-button__square,
-.futoshiki-number-line .futoshiki-action-button:active .futoshiki-game-button__square {
-  transform: translateZ(0) scale(0.94);
-}
-
-.futoshiki-game-button__square {
-  display: flex;
-  width: 94.5%;
-  height: 94.5%;
-  align-items: center;
-  justify-content: center;
-  border-radius: 17%;
-  background: var(--futoshiki-action-image) center / contain no-repeat;
-  backface-visibility: hidden;
-  pointer-events: none;
-  transition: transform 120ms ease;
-  transform: translateZ(0);
-  will-change: transform;
-}
-
-.futoshiki-game-button__inner-square {
-  display: flex;
-  width: 78%;
-  height: 78%;
-  align-items: center;
-  justify-content: center;
-  margin-top: -1%;
-  border-radius: 15%;
-  pointer-events: none;
-}
-
-.futoshiki-action-button__icon {
-  display: block;
-  width: 54%;
-  height: 54%;
-  background: var(--futoshiki-action-icon) center / contain no-repeat;
-  opacity: 1;
-  pointer-events: none;
-}
-
-.futoshiki-help-button {
-  --futoshiki-action-image: url("./assets/blue_key.png");
-}
-
-.futoshiki-board-actions__button--new {
-  --futoshiki-action-image: url("./assets/green_key.png");
-}
-
-.futoshiki-board-actions__button--notes {
-  --futoshiki-action-image: url("./assets/purple_key.png");
-}
-
-.futoshiki-board-actions__button--reset {
-  --futoshiki-action-image: url("./assets/yellow_key.png");
-}
-
-.futoshiki-action-button--clear {
-  --futoshiki-action-image: url("./assets/red_key.png");
+  margin-top: 20px;
 }
 
 .futoshiki-number-block {
@@ -408,25 +304,6 @@
 .futoshiki-number-line button:hover {
   color: rgba(23, 21, 18, 0.94);
   background: rgba(255, 255, 255, 0.74);
-}
-
-.futoshiki-number-line .futoshiki-action-button {
-  display: flex;
-  width: 100%;
-  height: auto;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 19%;
-  color: rgba(255, 255, 255, 0.94);
-  background: transparent;
-  font-size: 1rem;
-  font-weight: 400;
-}
-
-.futoshiki-number-line .futoshiki-action-button:hover {
-  color: #fff;
-  background: transparent;
 }
 
 .futoshiki-help-modal {
@@ -507,23 +384,6 @@
   padding-right: 0;
 }
 
-.futoshiki-complete-modal__next {
-  min-width: 128px;
-  min-height: 48px;
-  padding: 0 24px;
-  border: 0;
-  border-radius: 8px;
-  color: #ffffff;
-  background: #1f92ea;
-  font-size: 1rem;
-  font-weight: 850;
-  line-height: 1;
-}
-
-.futoshiki-complete-modal__next:hover {
-  background: #197ed0;
-}
-
 @keyframes futoshiki-modal-fade-in {
   from {
     opacity: 0;
@@ -578,20 +438,16 @@
   }
 
   .futoshiki-title-block {
-    min-height: 84px;
-    padding: 24px 14px 4px;
+    min-height: 70px;
+    padding: 0 14px;
   }
 
-  .futoshiki-title-row {
+  .futoshiki-game-controls-row {
     gap: 14px;
   }
 
   .futoshiki-title-name {
     gap: 8px;
-  }
-
-  .futoshiki-level-selector {
-    gap: 16px;
   }
 
   .futoshiki-board-block {
