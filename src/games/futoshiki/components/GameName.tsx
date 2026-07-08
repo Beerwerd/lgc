@@ -1,5 +1,6 @@
-import { FaRegCircleQuestion } from 'react-icons/fa6';
-import { ActionButton } from './ActionButton';
+import nameImage from "../assets/name.png";
+import questionIconImage from "../assets/question_icon.png";
+import { ActionButton } from "./ActionButton";
 
 type GameNameProps = {
   onHelpClick: () => void;
@@ -8,9 +9,15 @@ type GameNameProps = {
 export function GameName({ onHelpClick }: GameNameProps) {
   return (
     <div className="futoshiki-title-name">
-      <h3>Futoshiki</h3>
+      <img
+        className="futoshiki-title-name__image"
+        src={nameImage}
+        alt="Futoshiki"
+      />
       <ActionButton
-        icon={FaRegCircleQuestion}
+        icon={questionIconImage}
+        variant="blue"
+        rounded
         className="futoshiki-help-button"
         onClick={onHelpClick}
       />

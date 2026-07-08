@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
-import { FaEraser } from 'react-icons/fa6';
-import { GiAnticlockwiseRotation } from 'react-icons/gi';
-import { MdOutlineAutorenew } from 'react-icons/md';
-import { TbEdit } from 'react-icons/tb';
-import type { GameModule, GameRuntimeProps } from '../../platform/types';
-import coverImage from './cover.png';
-import { ActionButton } from './components/ActionButton';
-import { Arrow } from './components/Arrow';
-import { DifficultySelector } from './components/DifficultySelector';
-import { GameName } from './components/GameName';
-import { Tail } from './components/Tail';
-import './futoshiki.css';
+import { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import type { GameModule, GameRuntimeProps } from "../../platform/types";
+import clearIconImage from "./assets/clear_icon.png";
+import newIconImage from "./assets/new_icon.png";
+import notesIconImage from "./assets/notes_icon.png";
+import resetIconImage from "./assets/reset_icon.png";
+import coverImage from "./cover.png";
+import { ActionButton } from "./components/ActionButton";
+import { Arrow } from "./components/Arrow";
+import { DifficultySelector } from "./components/DifficultySelector";
+import { GameName } from "./components/GameName";
+import { Tail } from "./components/Tail";
+import "./futoshiki.css";
 import {
   getCellKey,
   horizontalArrows,
@@ -19,15 +19,15 @@ import {
   NUMBER_OPTIONS,
   useFutoshikiGameState,
   verticalArrows,
-} from './logic';
-import previewGif from './preview.gif';
+} from "./logic";
+import previewGif from "./preview.gif";
 
 const boardRows = Array.from({ length: 9 }, (_, rowIndex) =>
   Array.from({ length: 9 }, (_, columnIndex) => ({
     key: `${rowIndex}-${columnIndex}`,
     rowIndex,
     columnIndex,
-  })),
+  }))
 );
 
 function FutoshikiGame({ resources }: GameRuntimeProps) {
@@ -81,7 +81,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
       className="futoshiki-game"
       onPointerDown={() =>
         resources.emit({
-          type: 'futoshiki.layout.press',
+          type: "futoshiki.layout.press",
           payload: {
             mocked: true,
           },
@@ -102,8 +102,10 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
           {boardRows.flatMap((row) =>
             row.map(({ key, rowIndex, columnIndex }) => {
               const isTile = rowIndex % 2 === 0 && columnIndex % 2 === 0;
-              const isHorizontalArrowSlot = rowIndex % 2 === 0 && columnIndex % 2 === 1;
-              const isVerticalArrowSlot = rowIndex % 2 === 1 && columnIndex % 2 === 0;
+              const isHorizontalArrowSlot =
+                rowIndex % 2 === 0 && columnIndex % 2 === 1;
+              const isVerticalArrowSlot =
+                rowIndex % 2 === 1 && columnIndex % 2 === 0;
 
               if (isTile) {
                 const boardRowIndex = rowIndex / 2;
@@ -115,7 +117,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
                 };
                 const isGiven = isGivenCell(cell);
                 const hasDuplicateError = duplicateCellKeys.has(
-                  getCellKey(cell),
+                  getCellKey(cell)
                 );
                 const isSelected =
                   selectedCell?.rowIndex === boardRowIndex &&
@@ -169,23 +171,21 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
               }
 
               return <div className="futoshiki-board-mock__gap" key={key} />;
-            }),
+            })
           )}
         </div>
 
         <div className="futoshiki-board-actions">
           <ActionButton
-            icon={MdOutlineAutorenew}
-            className="futoshiki-board-actions__button futoshiki-board-actions__button--new"
+            icon={newIconImage}
+            variant="green"
             onClick={startNewLevel}
           />
+          <ActionButton icon={notesIconImage} variant="purple" />
           <ActionButton
-            icon={TbEdit}
-            className="futoshiki-board-actions__button futoshiki-board-actions__button--notes"
-          />
-          <ActionButton
-            icon={GiAnticlockwiseRotation}
-            className="futoshiki-board-actions__button futoshiki-board-actions__button--reset"
+            icon={resetIconImage}
+            variant="yellow"
+            className="futoshiki-board-actions__button--reset"
             onClick={resetBoard}
           />
         </div>
@@ -204,7 +204,8 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
             />
           ))}
           <ActionButton
-            icon={FaEraser}
+            icon={clearIconImage}
+            variant="red"
             className="futoshiki-action-button futoshiki-action-button--clear"
             onClick={clearSelectedCell}
           />
@@ -213,7 +214,9 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
 
       {isHelpModalOpen && (
         <div
-          className={`futoshiki-help-modal${isHelpModalClosing ? ' is-closing' : ''}`}
+          className={`futoshiki-help-modal${
+            isHelpModalClosing ? " is-closing" : ""
+          }`}
           onAnimationEnd={(event) => {
             if (event.currentTarget === event.target && isHelpModalClosing) {
               setIsHelpModalOpen(false);
@@ -241,8 +244,9 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
 
             <h4>How to play</h4>
             <p>
-              Every row and column must contain each number from 1 to 5 exactly once. The small end
-              of every inequality sign must hold the smaller value.
+              Every row and column must contain each number from 1 to 5 exactly
+              once. The small end of every inequality sign must hold the smaller
+              value.
             </p>
           </section>
         </div>
@@ -258,7 +262,11 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
             onPointerDown={(event) => event.stopPropagation()}
           >
             <h4>Completed!</h4>
-            <button className="futoshiki-complete-modal__next" type="button" onClick={startNextLevel}>
+            <button
+              className="futoshiki-complete-modal__next"
+              type="button"
+              onClick={startNextLevel}
+            >
               Next
             </button>
           </section>
@@ -269,11 +277,11 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
 }
 
 const futoshikiGame: GameModule = {
-  name: 'Futoshiki',
+  name: "Futoshiki",
   catalog: {
     coverImage,
     previewGif,
-    accent: '#43b996',
+    accent: "#43b996",
     size: 2,
   },
   Game: FutoshikiGame,
