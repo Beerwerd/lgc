@@ -267,32 +267,30 @@
 }
 
 .futoshiki-board-mock__arrow {
-  color: rgba(147, 151, 154, 0.72);
-}
-
-.futoshiki-board-mock__arrow.is-empty {
-  color: transparent;
-}
-
-.futoshiki-board-mock__arrow.is-invalid {
-  color: #ff3042;
+  position: relative;
+  z-index: 3;
 }
 
 .futoshiki-board-mock__arrow-glyph {
-  display: grid;
-  width: 22px;
-  height: 22px;
-  place-items: center;
-}
+  --futoshiki-arrow-x: 0px;
+  --futoshiki-arrow-y: 0px;
 
-.futoshiki-board-mock__arrow svg {
   display: block;
-  width: 22px;
-  height: 22px;
+  width: auto;
+  height: auto;
+  max-width: none;
+  object-fit: contain;
+  pointer-events: none;
+  transform: translate(var(--futoshiki-arrow-x), var(--futoshiki-arrow-y)) scale(0.50);
 }
 
-.futoshiki-board-mock__arrow.is-vertical svg {
-  transform: scale(1.04);
+.futoshiki-board-mock__arrow-glyph.is-right,
+.futoshiki-board-mock__arrow-glyph.is-left {
+  --futoshiki-arrow-x: -2px;
+}
+
+.futoshiki-board-mock__arrow-glyph.is-down {
+  --futoshiki-arrow-y: -2px;
 }
 
 .futoshiki-board-actions {
