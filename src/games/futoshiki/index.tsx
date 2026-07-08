@@ -212,6 +212,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
             />
           ))}
           <ActionButton
+            className="futoshiki-number-line__clear"
             icon={clearIconImage}
             variant="red"
             fullWidth

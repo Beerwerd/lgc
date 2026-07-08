@@ -3,6 +3,7 @@ import { Button, type ButtonVariant } from "./Button";
 
 export type ActionButtonProps = {
   children?: ReactNode;
+  className?: string;
   icon?: string;
   fullWidth?: boolean;
   variant: ButtonVariant;
@@ -11,6 +12,7 @@ export type ActionButtonProps = {
 
 export function ActionButton({
   children,
+  className,
   icon,
   fullWidth = false,
   variant,
@@ -18,6 +20,7 @@ export function ActionButton({
 }: ActionButtonProps) {
   return (
     <Button
+      className={className}
       icon={icon}
       size={fullWidth ? "fill" : "default"}
       variant={variant}
