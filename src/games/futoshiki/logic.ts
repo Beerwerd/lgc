@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 
 export type BoardValue = number | null;
 export type BoardValues = BoardValue[][];
+export type BoardNotes = number[][][];
 export type ArrowDirection = 'left' | 'right' | 'up' | 'down';
 
 export type BoardCell = {
@@ -55,6 +56,12 @@ export function createInitialBoardValues() {
   return initialBoardValues.map((row) => [...row]);
 }
 
+export function createInitialBoardNotes(): BoardNotes {
+  return Array.from({ length: BOARD_SIZE }, () =>
+    Array.from({ length: BOARD_SIZE }, () => []),
+  );
+}
+
 export function isGivenCell({ rowIndex, columnIndex }: BoardCell) {
   return initialBoardValues[rowIndex][columnIndex] !== null;
 }
@@ -84,6 +91,39 @@ export function clearBoardCellValue(boardValues: BoardValues, selectedCell: Boar
     row.map((value, columnIndex) =>
       rowIndex === selectedCell.rowIndex && columnIndex === selectedCell.columnIndex ? null : value,
     ),
+  );
+}
+
+export function clearBoardCellNotes(boardNotes: BoardNotes, selectedCell: BoardCell) {
+  return boardNotes.map((row, rowIndex) =>
+    row.map((notes, columnIndex) =>
+      rowIndex === selectedCell.rowIndex && columnIndex === selectedCell.columnIndex ? [] : notes,
+    ),
+  );
+}
+
+export function toggleBoardCellNote(
+  boardNotes: BoardNotes,
+  boardValues: BoardValues,
+  selectedCell: BoardCell,
+  number: number,
+) {
+  if (isGivenCell(selectedCell) || boardValues[selectedCell.rowIndex][selectedCell.columnIndex]) {
+    return clearBoardCellNotes(boardNotes, selectedCell);
+  }
+
+  return boardNotes.map((row, rowIndex) =>
+    row.map((notes, columnIndex) => {
+      if (rowIndex !== selectedCell.rowIndex || columnIndex !== selectedCell.columnIndex) {
+        return notes;
+      }
+
+      if (notes.includes(number)) {
+        return notes.filter((note) => note !== number);
+      }
+
+      return [...notes, number].sort((left, right) => left - right);
+    }),
   );
 }
 
@@ -174,6 +214,7 @@ export function isBoardComplete(boardValues: BoardValues, validation: Validation
 
 export function useFutoshikiGameState() {
   const [boardValues, setBoardValues] = useState(createInitialBoardValues);
+  const [boardNotes, setBoardNotes] = useState(createInitialBoardNotes);
   const [selectedCell, setSelectedCell] = useState<BoardCell | null>(null);
   const validation = useMemo(() => validateBoard(boardValues), [boardValues]);
   const isLevelComplete = isBoardComplete(boardValues, validation);
@@ -192,6 +233,17 @@ export function useFutoshikiGameState() {
     setBoardValues((currentBoardValues) =>
       setBoardCellValue(currentBoardValues, selectedCell, number),
     );
+    setBoardNotes((currentBoardNotes) => clearBoardCellNotes(currentBoardNotes, selectedCell));
+  };
+
+  const toggleSelectedNote = (number: number) => {
+    if (!selectedCell || isGivenCell(selectedCell)) {
+      return;
+    }
+
+    setBoardNotes((currentBoardNotes) =>
+      toggleBoardCellNote(currentBoardNotes, boardValues, selectedCell, number),
+    );
   };
 
   const clearSelectedCell = () => {
@@ -202,20 +254,24 @@ export function useFutoshikiGameState() {
     setBoardValues((currentBoardValues) =>
       clearBoardCellValue(currentBoardValues, selectedCell),
     );
+    setBoardNotes((currentBoardNotes) => clearBoardCellNotes(currentBoardNotes, selectedCell));
   };
 
   const resetLevel = () => {
     setBoardValues(createInitialBoardValues());
+    setBoardNotes(createInitialBoardNotes());
     setSelectedCell(null);
   };
 
   return {
     boardValues,
+    boardNotes,
     selectedCell,
     validation,
     isLevelComplete,
     selectCell,
     selectNumber,
+    toggleSelectedNote,
     clearSelectedCell,
     resetLevel,
   };

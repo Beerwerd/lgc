@@ -8,12 +8,15 @@ type TailVariant = 'board' | 'number';
 type TailProps = {
   variant: TailVariant;
   value: number | null;
+  notes?: number[];
   disabled?: boolean;
   isGiven?: boolean;
   isSelected?: boolean;
   isInvalid?: boolean;
   onClick?: () => void;
 };
+
+const NOTE_NUMBERS = [1, 2, 3, 4, 5];
 
 function getTailClassName({ variant, isGiven, isSelected, isInvalid }: TailProps) {
   if (variant === 'number') {
@@ -26,8 +29,14 @@ function getTailClassName({ variant, isGiven, isSelected, isInvalid }: TailProps
 }
 
 export function Tail(props: TailProps) {
-  const { value, variant, disabled, isGiven, isSelected, isInvalid, onClick } = props;
-  const valueLabel = value === null ? 'empty' : String(value);
+  const { value, variant, notes = [], disabled, isGiven, isSelected, isInvalid, onClick } = props;
+  const visibleNotes = value === null ? notes : [];
+  const valueLabel =
+    value === null
+      ? visibleNotes.length > 0
+        ? `notes ${visibleNotes.join(', ')}`
+        : 'empty'
+      : String(value);
   const isBoardTile = variant === 'board';
   const image =
     isBoardTile && isSelected
@@ -53,6 +62,15 @@ export function Tail(props: TailProps) {
           alt=""
           aria-hidden="true"
         />
+      )}
+      {visibleNotes.length > 0 && (
+        <span className="futoshiki-tail__notes" aria-hidden="true">
+          {NOTE_NUMBERS.map((noteNumber) => (
+            <span className="futoshiki-tail__note" key={noteNumber}>
+              {visibleNotes.includes(noteNumber) ? noteNumber : ''}
+            </span>
+          ))}
+        </span>
       )}
       {value !== null && <span className="futoshiki-tail__value">{value}</span>}
     </button>

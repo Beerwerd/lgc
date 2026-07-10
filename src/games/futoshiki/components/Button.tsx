@@ -9,7 +9,7 @@ import purpleKeyImage from "../assets/purple_key.png";
 import redKeyImage from "../assets/red_key.png";
 import yellowKeyImage from "../assets/yellow_key.png";
 
-type ButtonSize = "default" | "fill" | "stretch";
+export type ButtonSize = "default" | "fill" | "stretch" | number;
 
 export type ButtonVariant =
   | "blue"
@@ -145,6 +145,16 @@ export function Button({
   const [isHovered, setIsHovered] = useState(false);
   const isFill = size === "fill";
   const isStretch = size === "stretch";
+  const isCustomSize = typeof size === "number";
+  const actionSize = isCustomSize ? `${size}px` : ACTION_SIZE;
+  const buttonRadius = isCustomSize ? `${size * 0.19}px` : BUTTON_RADIUS;
+  const faceSize = isCustomSize ? `${size * 0.945}px` : FACE_SIZE;
+  const capSize = isCustomSize ? `${size * 0.4725}px` : CAP_SIZE;
+  const faceMargin = isCustomSize ? `${size * 0.0275}px` : FACE_MARGIN;
+  const iconSize = isCustomSize ? `${size * 0.398}px` : ICON_SIZE;
+  const textPaddingInline = isCustomSize
+    ? `${size * 0.28}px`
+    : TEXT_PADDING_INLINE;
   const appearance = buttonAppearances[variant];
   const keyImage = appearance.type === "image" ? appearance.image : undefined;
   const centerSlice = useCenterSlice(keyImage ?? "");
@@ -154,17 +164,21 @@ export function Button({
     position: "relative",
     zIndex: 1,
     display: "inline-flex",
-    width: isFill || isStretch ? "100%" : "max-content",
-    height: isFill ? "auto" : isStretch ? "100%" : ACTION_SIZE,
-    minWidth: isFill || isStretch ? 0 : ACTION_SIZE,
+    width:
+      isFill || isStretch ? "100%" : isCustomSize ? actionSize : "max-content",
+    height: isFill ? "auto" : isStretch ? "100%" : actionSize,
+    minWidth: isFill || isStretch ? 0 : actionSize,
     alignItems: "center",
     justifyContent: "center",
     aspectRatio: isFill ? "1" : undefined,
     padding: 0,
     border: 0,
-    borderRadius: isFill ? "19%" : BUTTON_RADIUS,
+    borderRadius: isFill ? "19%" : buttonRadius,
     color: isHovered ? "#fff" : "rgba(255, 255, 255, 0.94)",
-    background: isFill || isStretch ? "transparent" : "#090101",
+    background:
+      isFill || isStretch || appearance.type === "image"
+        ? "transparent"
+        : "#090101",
     fontSize: "1rem",
     fontWeight: hasTextContent ? 850 : isFill ? 400 : undefined,
     lineHeight: 1,
@@ -179,11 +193,11 @@ export function Button({
     position: "relative",
     display: "grid",
     width: isFill ? "96%" : isStretch ? "100%" : "max-content",
-    minWidth: FACE_SIZE,
+    minWidth: faceSize,
     height: isStretch ? "100%" : "96%",
-    gridTemplateColumns: `${CAP_SIZE} minmax(0, 1fr) ${CAP_SIZE}`,
+    gridTemplateColumns: `${capSize} minmax(0, 1fr) ${capSize}`,
     gridTemplateRows: "100%",
-    marginInline: isFill || isStretch ? undefined : FACE_MARGIN,
+    marginInline: isFill || isStretch ? undefined : faceMargin,
     overflow: "hidden",
     borderRadius: "17%",
     backfaceVisibility: "hidden",
@@ -199,7 +213,7 @@ export function Button({
     backgroundColor: appearance.type === "color" ? appearance.color : undefined,
     backgroundImage: keyImage ? `url(${keyImage})` : undefined,
     backgroundRepeat: "no-repeat",
-    backgroundSize: `${FACE_SIZE} 100%`,
+    backgroundSize: `${faceSize} 100%`,
   };
 
   const leftCapStyle: CSSProperties = {
@@ -239,15 +253,15 @@ export function Button({
     alignItems: "center",
     justifyContent: "center",
     gap: icon && hasTextContent ? "0.35em" : undefined,
-    paddingInline: hasTextContent ? TEXT_PADDING_INLINE : 0,
+    paddingInline: hasTextContent ? textPaddingInline : 0,
     whiteSpace: "nowrap",
     pointerEvents: "none",
   };
 
   const iconStyle: CSSProperties = {
     display: "block",
-    width: hasTextContent ? "1.25em" : ICON_SIZE,
-    height: hasTextContent ? "1.25em" : ICON_SIZE,
+    width: hasTextContent ? "1.25em" : iconSize,
+    height: hasTextContent ? "1.25em" : iconSize,
     flex: "0 0 auto",
     background: icon ? `url(${icon}) center / contain no-repeat` : undefined,
     opacity: 1,

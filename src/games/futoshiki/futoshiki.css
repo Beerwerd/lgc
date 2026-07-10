@@ -194,10 +194,10 @@
 }
 
 .futoshiki-tail__image {
-  width: 108%;
-  height: 108%;
+  width: 100%;
+  height: 100%;
   grid-area: 1 / 1;
-  object-fit: contain;
+  object-fit: fill;
   pointer-events: none;
   transition: transform 120ms ease;
   will-change: transform;
@@ -218,6 +218,31 @@
   pointer-events: none;
   transition: transform 120ms ease;
   will-change: transform;
+}
+
+.futoshiki-tail__notes {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 78%;
+  height: 78%;
+  grid-area: 1 / 1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  justify-items: center;
+  color: #07375e;
+  font-family: "Futoshiki Baloo 2", system-ui, sans-serif;
+  font-size: clamp(1rem, 3.05vw, 1.08rem);
+  font-weight: 850;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.futoshiki-tail__note {
+  display: grid;
+  min-width: 0;
+  place-items: center;
 }
 
 .futoshiki-board-mock__cell:not(:disabled) {
@@ -284,16 +309,19 @@
   transform: translate(var(--futoshiki-arrow-x), var(--futoshiki-arrow-y)) scale(0.50);
 }
 
-.futoshiki-board-mock__arrow-glyph.is-right,
-.futoshiki-board-mock__arrow-glyph.is-left {
+.futoshiki-board-mock__arrow-glyph.is-right {
   --futoshiki-arrow-x: -4px;
 }
 
+.futoshiki-board-mock__arrow-glyph.is-left {
+  --futoshiki-arrow-x: -5px;
+}
+
 .futoshiki-board-mock__arrow-glyph.is-up {
-  --futoshiki-arrow-y: -3px;
+  --futoshiki-arrow-y: -5px;
 }
 .futoshiki-board-mock__arrow-glyph.is-down {
-  --futoshiki-arrow-y: -4px;
+  --futoshiki-arrow-y: -6px;
 }
 
 .futoshiki-board-actions {

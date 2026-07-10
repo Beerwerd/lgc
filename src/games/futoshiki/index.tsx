@@ -35,17 +35,20 @@ const boardRows = Array.from({ length: 9 }, (_, rowIndex) =>
 function FutoshikiGame({ resources }: GameRuntimeProps) {
   const {
     boardValues,
+    boardNotes,
     selectedCell,
     validation,
     isLevelComplete,
     selectCell,
     selectNumber,
+    toggleSelectedNote,
     clearSelectedCell,
     resetLevel,
   } = useFutoshikiGameState();
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isHelpModalClosing, setIsHelpModalClosing] = useState(false);
   const [isCompletionModalOpen, setIsCompletionModalOpen] = useState(false);
+  const [isNotesModeSelected, setIsNotesModeSelected] = useState(false);
 
   const openHelpModal = () => {
     setIsHelpModalClosing(false);
@@ -63,6 +66,19 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
   const startNewLevel = () => {
     resetLevel();
     setIsCompletionModalOpen(false);
+  };
+
+  const toggleNotesMode = () => {
+    setIsNotesModeSelected((isSelected) => !isSelected);
+  };
+
+  const handleNumberSelect = (number: number) => {
+    if (isNotesModeSelected) {
+      toggleSelectedNote(number);
+      return;
+    }
+
+    selectNumber(number);
   };
 
   const { duplicateCellKeys, brokenArrowKeys } = validation;
@@ -91,7 +107,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
 
       if (event.key >= "1" && event.key <= "5") {
         event.preventDefault();
-        selectNumber(Number(event.key));
+        handleNumberSelect(Number(event.key));
         return;
       }
 
@@ -106,7 +122,12 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [clearSelectedCell, isCompletionModalOpen, isHelpModalOpen, selectNumber]);
+  }, [
+    clearSelectedCell,
+    handleNumberSelect,
+    isCompletionModalOpen,
+    isHelpModalOpen,
+  ]);
 
   const startNextLevel = () => {
     resetLevel();
@@ -138,6 +159,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
           <ActionButton
             icon={questionIconImage}
             variant="blue"
+            size={54}
             onClick={openHelpModal}
           />
           <DifficultySelector />
@@ -172,6 +194,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
                     key={key}
                     variant="board"
                     value={value}
+                    notes={boardNotes[boardRowIndex][boardColumnIndex]}
                     isGiven={isGiven}
                     isSelected={isSelected}
                     isInvalid={hasDuplicateError}
@@ -223,12 +246,19 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
           <ActionButton
             icon={newIconImage}
             variant="green"
+            size={54}
             onClick={startNewLevel}
           />
-          <ActionButton icon={notesIconImage} variant="purple" />
+          <ActionButton
+            icon={notesIconImage}
+            size={isNotesModeSelected ? 50 : 54}
+            variant={isNotesModeSelected ? "lightBlue" : "purple"}
+            onClick={toggleNotesMode}
+          />
           <ActionButton
             icon={resetIconImage}
             variant="yellow"
+            size={54}
             onClick={resetBoard}
           />
         </div>
@@ -243,7 +273,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
               key={number}
               variant="number"
               value={number}
-              onClick={() => selectNumber(number)}
+              onClick={() => handleNumberSelect(number)}
             />
           ))}
           <ActionButton

@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import { Button, type ButtonVariant } from "./Button";
+import { Button, type ButtonSize, type ButtonVariant } from "./Button";
 
 export type ActionButtonProps = {
   children?: ReactNode;
   className?: string;
   icon?: string;
   fullWidth?: boolean;
+  size?: ButtonSize;
   variant: ButtonVariant;
   onClick?: () => void;
 };
@@ -15,6 +16,7 @@ export function ActionButton({
   className,
   icon,
   fullWidth = false,
+  size,
   variant,
   onClick,
 }: ActionButtonProps) {
@@ -22,7 +24,7 @@ export function ActionButton({
     <Button
       className={className}
       icon={icon}
-      size={fullWidth ? "fill" : "default"}
+      size={fullWidth ? "fill" : size}
       variant={variant}
       onClick={onClick}
     >
