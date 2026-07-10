@@ -138,6 +138,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
         selectedCell={selectedCell}
         validation={validation}
         isNotesModeSelected={isNotesModeSelected}
+        onDifficultyChange={() => setIsCompletionModalOpen(false)}
         onOpenHelpModal={openHelpModal}
         onResetBoard={resetBoard}
         onSelectCell={selectCell}

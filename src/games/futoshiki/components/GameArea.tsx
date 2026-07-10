@@ -15,7 +15,10 @@ import {
 } from "../logic";
 import { ActionButton } from "./ActionButton";
 import { Arrow } from "./Arrow";
-import { DifficultySelector } from "./DifficultySelector";
+import {
+  DifficultySelector,
+  type Difficulty,
+} from "./DifficultySelector";
 import { Tail } from "./Tail";
 
 type GameAreaProps = {
@@ -25,6 +28,7 @@ type GameAreaProps = {
   validation: ValidationResult;
   isNotesModeSelected: boolean;
   onOpenHelpModal: () => void;
+  onDifficultyChange: (difficulty: Difficulty) => void;
   onResetBoard: () => void;
   onSelectCell: (cell: BoardCell) => void;
   onStartNewLevel: () => void;
@@ -247,6 +251,7 @@ export function GameArea({
   validation,
   isNotesModeSelected,
   onOpenHelpModal,
+  onDifficultyChange,
   onResetBoard,
   onSelectCell,
   onStartNewLevel,
@@ -326,7 +331,12 @@ export function GameArea({
           size={54}
           onClick={onOpenHelpModal}
         />
-        <DifficultySelector />
+        <DifficultySelector
+          onChange={(difficulty) => {
+            onDifficultyChange(difficulty);
+            startNewLevel();
+          }}
+        />
       </div>
       <div style={boardStyle}>
         {boardRows.flatMap((row) =>
@@ -477,7 +487,8 @@ export function GameArea({
         />
         <ActionButton
           icon={notesIconImage}
-          size={isNotesModeSelected ? 50 : 54}
+          pressing={isNotesModeSelected}
+          size={54}
           variant={isNotesModeSelected ? "lightBlue" : "purple"}
           onClick={onToggleNotesMode}
         />

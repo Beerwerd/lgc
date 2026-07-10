@@ -26,6 +26,7 @@ export type ButtonProps = Omit<
   "type"
 > & {
   icon?: string;
+  pressing?: boolean;
   size?: ButtonSize;
   variant: ButtonVariant;
 };
@@ -57,6 +58,52 @@ const buttonAppearances: Record<ButtonVariant, ButtonAppearance> = {
   purple: { type: "image", image: purpleKeyImage },
   red: { type: "image", image: redKeyImage },
   yellow: { type: "image", image: yellowKeyImage },
+};
+
+const buttonPressedGlows: Record<
+  ButtonVariant,
+  { border: string; boxShadow: string }
+> = {
+  blue: {
+    border: "2px solid rgba(43, 92, 255, 0.5)",
+    boxShadow:
+      "0 0 5px 4px rgba(43, 92, 255, 0.66), 0 0 2px 1px rgba(43, 92, 255, 0.28)",
+  },
+  brown: {
+    border: "2px solid rgba(137, 75, 36, 0.5)",
+    boxShadow:
+      "0 0 5px 4px rgba(137, 75, 36, 0.66), 0 0 2px 1px rgba(137, 75, 36, 0.28)",
+  },
+  green: {
+    border: "2px solid rgba(58, 186, 94, 0.5)",
+    boxShadow:
+      "0 0 5px 4px rgba(58, 186, 94, 0.66), 0 0 2px 1px rgba(58, 186, 94, 0.28)",
+  },
+  lightBlue: {
+    border: "2px solid rgba(43, 137, 255, 0.5)",
+    boxShadow:
+      "0 0 5px 4px rgba(43, 137, 255, 0.66), 0 0 2px 1px rgba(43, 137, 255, 0.28)",
+  },
+  orange: {
+    border: "2px solid rgba(255, 145, 43, 0.5)",
+    boxShadow:
+      "0 0 5px 4px rgba(255, 145, 43, 0.66), 0 0 2px 1px rgba(255, 145, 43, 0.28)",
+  },
+  purple: {
+    border: "2px solid rgba(153, 83, 255, 0.5)",
+    boxShadow:
+      "0 0 5px 4px rgba(153, 83, 255, 0.66), 0 0 2px 1px rgba(153, 83, 255, 0.28)",
+  },
+  red: {
+    border: "2px solid rgba(255, 48, 66, 0.5)",
+    boxShadow:
+      "0 0 5px 4px rgba(255, 48, 66, 0.66), 0 0 2px 1px rgba(255, 48, 66, 0.28)",
+  },
+  yellow: {
+    border: "2px solid rgba(255, 209, 43, 0.5)",
+    boxShadow:
+      "0 0 5px 4px rgba(255, 209, 43, 0.66), 0 0 2px 1px rgba(255, 209, 43, 0.28)",
+  },
 };
 
 const centerSliceCache = new Map<string, string>();
@@ -130,6 +177,7 @@ function useCenterSlice(image: string) {
 export function Button({
   children,
   icon,
+  pressing = false,
   size = "default",
   variant,
   onPointerDown,
@@ -156,9 +204,11 @@ export function Button({
     ? `${size * 0.28}px`
     : TEXT_PADDING_INLINE;
   const appearance = buttonAppearances[variant];
+  const pressedGlow = buttonPressedGlows[variant];
   const keyImage = appearance.type === "image" ? appearance.image : undefined;
   const centerSlice = useCenterSlice(keyImage ?? "");
   const hasTextContent = children !== undefined && children !== null;
+  const isPressing = pressing || isActive;
 
   const buttonStyle: CSSProperties = {
     position: "relative",
@@ -198,13 +248,27 @@ export function Button({
     gridTemplateColumns: `${capSize} minmax(0, 1fr) ${capSize}`,
     gridTemplateRows: "100%",
     marginInline: isFill || isStretch ? undefined : faceMargin,
-    overflow: "hidden",
+    overflow: isPressing ? "visible" : "hidden",
     borderRadius: "17%",
     backfaceVisibility: "hidden",
     pointerEvents: "none",
     transition: "transform 120ms ease",
-    transform: `translateZ(0) scale(${isActive ? 0.94 : 1})`,
+    transform: `translateZ(0) scale(${isPressing ? 0.94 : 1})`,
     willChange: "transform",
+  };
+
+  const pressedGlowStyle: CSSProperties = {
+    position: "absolute",
+    zIndex: 0,
+    top: "50%",
+    left: "50%",
+    width: "calc(108% - 6px)",
+    height: "calc(100% - 6px)",
+    borderRadius: "24%",
+    border: pressedGlow.border,
+    boxShadow: pressedGlow.boxShadow,
+    pointerEvents: "none",
+    transform: "translate(-50%, -50%)",
   };
 
   const capStyle: CSSProperties = {
@@ -218,12 +282,14 @@ export function Button({
 
   const leftCapStyle: CSSProperties = {
     ...capStyle,
+    zIndex: 1,
     gridColumn: "1",
     gridRow: "1",
     backgroundPosition: "left center",
   };
 
   const centerStyle: CSSProperties = {
+    zIndex: 1,
     gridColumn: "2",
     gridRow: "1",
     minWidth: 0,
@@ -237,6 +303,7 @@ export function Button({
 
   const rightCapStyle: CSSProperties = {
     ...capStyle,
+    zIndex: 1,
     gridColumn: "3",
     gridRow: "1",
     backgroundPosition: "right center",
@@ -301,6 +368,9 @@ export function Button({
       }}
     >
       <span style={faceStyle}>
+        {isPressing ? (
+          <span aria-hidden="true" style={pressedGlowStyle} />
+        ) : null}
         <span aria-hidden="true" style={leftCapStyle} />
         <span aria-hidden="true" style={centerStyle} />
         <span aria-hidden="true" style={rightCapStyle} />

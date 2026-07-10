@@ -5,7 +5,7 @@ import hardImage from "../assets/hard.png";
 import hardDisabledImage from "../assets/hard_disabled.png";
 import { Button } from "./Button";
 
-type Difficulty = "easy" | "hard";
+export type Difficulty = "easy" | "hard";
 
 type DifficultySelectorProps = {
   activeDifficulty?: Difficulty;
@@ -56,6 +56,10 @@ export function DifficultySelector({
     difficulties[0];
 
   const selectDifficulty = (difficulty: Difficulty) => {
+    if (difficulty === resolvedDifficulty) {
+      return;
+    }
+
     setSelectedDifficulty(difficulty);
     onChange?.(difficulty);
   };

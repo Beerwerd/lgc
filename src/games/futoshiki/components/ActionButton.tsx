@@ -6,6 +6,7 @@ export type ActionButtonProps = {
   className?: string;
   icon?: string;
   fullWidth?: boolean;
+  pressing?: boolean;
   size?: ButtonSize;
   variant: ButtonVariant;
   onClick?: () => void;
@@ -16,6 +17,7 @@ export function ActionButton({
   className,
   icon,
   fullWidth = false,
+  pressing = false,
   size,
   variant,
   onClick,
@@ -24,6 +26,7 @@ export function ActionButton({
     <Button
       className={className}
       icon={icon}
+      pressing={pressing}
       size={fullWidth ? "fill" : size}
       variant={variant}
       onClick={onClick}
