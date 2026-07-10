@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, CSSProperties } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import blueKeyImage from "../assets/blue_key.png";
 import brownKeyImage from "../assets/brown_key.png";
 import greenKeyImage from "../assets/green_key.png";
@@ -38,6 +38,7 @@ const CAP_SIZE = "clamp(22.68px, 4.725vw, 28.35px)";
 const FACE_MARGIN = "clamp(1.32px, 0.275vw, 1.65px)";
 const ICON_SIZE = "clamp(19.1px, 3.98vw, 23.88px)";
 const TEXT_PADDING_INLINE = "clamp(13.44px, 2.8vw, 16.8px)";
+const ACTIVE_RELEASE_DELAY_MS = 80;
 
 type ButtonAppearance =
   | {
@@ -108,25 +109,39 @@ const buttonPressedGlows: Record<
 
 const centerSliceCache = new Map<string, string>();
 
-function useCenterSlice(image: string) {
-  const [centerSlice, setCenterSlice] = useState(
-    () => centerSliceCache.get(image) ?? image
+type ButtonImageParts = {
+  centerSlice: string;
+  image: string;
+};
+
+function createButtonImageParts(image: string): ButtonImageParts {
+  return {
+    centerSlice: image ? centerSliceCache.get(image) ?? image : "",
+    image,
+  };
+}
+
+function useButtonImageParts(image: string | undefined) {
+  const requestedImage = image ?? "";
+  const [resolvedParts, setResolvedParts] = useState(() =>
+    createButtonImageParts(requestedImage)
   );
 
   useEffect(() => {
-    if (!image) {
-      setCenterSlice("");
+    if (!requestedImage) {
+      setResolvedParts({ centerSlice: "", image: "" });
       return;
     }
 
-    const cachedSlice = centerSliceCache.get(image);
+    const cachedSlice = centerSliceCache.get(requestedImage);
 
     if (cachedSlice) {
-      setCenterSlice(cachedSlice);
+      setResolvedParts({
+        centerSlice: cachedSlice,
+        image: requestedImage,
+      });
       return;
     }
-
-    setCenterSlice(image);
 
     let isCancelled = false;
     const sourceImage = new Image();
@@ -151,27 +166,52 @@ function useCenterSlice(image: string) {
       );
 
       const slice = canvas.toDataURL("image/png");
-      centerSliceCache.set(image, slice);
+      centerSliceCache.set(requestedImage, slice);
 
       if (!isCancelled) {
-        setCenterSlice(slice);
+        setResolvedParts({
+          centerSlice: slice,
+          image: requestedImage,
+        });
       }
     };
 
     sourceImage.onerror = () => {
       if (!isCancelled) {
-        setCenterSlice(image);
+        setResolvedParts({
+          centerSlice: requestedImage,
+          image: requestedImage,
+        });
       }
     };
 
-    sourceImage.src = image;
+    sourceImage.src = requestedImage;
 
     return () => {
       isCancelled = true;
     };
-  }, [image]);
+  }, [requestedImage]);
 
-  return centerSlice;
+  const cachedSlice = requestedImage
+    ? centerSliceCache.get(requestedImage)
+    : "";
+
+  if (!requestedImage) {
+    return { centerSlice: "", image: "" };
+  }
+
+  if (cachedSlice) {
+    return {
+      centerSlice: cachedSlice,
+      image: requestedImage,
+    };
+  }
+
+  if (resolvedParts.image === requestedImage) {
+    return resolvedParts;
+  }
+
+  return resolvedParts;
 }
 
 export function Button({
@@ -191,6 +231,7 @@ export function Button({
 }: ButtonProps) {
   const [isActive, setIsActive] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const releaseActiveTimeoutRef = useRef<number | null>(null);
   const isFill = size === "fill";
   const isStretch = size === "stretch";
   const isCustomSize = typeof size === "number";
@@ -206,9 +247,34 @@ export function Button({
   const appearance = buttonAppearances[variant];
   const pressedGlow = buttonPressedGlows[variant];
   const keyImage = appearance.type === "image" ? appearance.image : undefined;
-  const centerSlice = useCenterSlice(keyImage ?? "");
+  const buttonImageParts = useButtonImageParts(keyImage);
+  const visibleKeyImage = buttonImageParts.image || keyImage;
   const hasTextContent = children !== undefined && children !== null;
   const isPressing = pressing || isActive;
+
+  const cancelScheduledActiveRelease = () => {
+    if (releaseActiveTimeoutRef.current === null) {
+      return;
+    }
+
+    window.clearTimeout(releaseActiveTimeoutRef.current);
+    releaseActiveTimeoutRef.current = null;
+  };
+
+  const releaseActiveAfterClick = () => {
+    cancelScheduledActiveRelease();
+    releaseActiveTimeoutRef.current = window.setTimeout(() => {
+      setIsActive(false);
+      releaseActiveTimeoutRef.current = null;
+    }, ACTIVE_RELEASE_DELAY_MS);
+  };
+
+  useEffect(
+    () => () => {
+      cancelScheduledActiveRelease();
+    },
+    []
+  );
 
   const buttonStyle: CSSProperties = {
     position: "relative",
@@ -275,7 +341,7 @@ export function Button({
     minWidth: 0,
     height: "100%",
     backgroundColor: appearance.type === "color" ? appearance.color : undefined,
-    backgroundImage: keyImage ? `url(${keyImage})` : undefined,
+    backgroundImage: visibleKeyImage ? `url(${visibleKeyImage})` : undefined,
     backgroundRepeat: "no-repeat",
     backgroundSize: `${faceSize} 100%`,
   };
@@ -295,7 +361,9 @@ export function Button({
     minWidth: 0,
     height: "100%",
     backgroundColor: appearance.type === "color" ? appearance.color : undefined,
-    backgroundImage: keyImage ? `url(${centerSlice})` : undefined,
+    backgroundImage: visibleKeyImage
+      ? `url(${buttonImageParts.centerSlice})`
+      : undefined,
     backgroundRepeat: "repeat-x",
     backgroundSize: "1px 100%",
     backgroundPosition: "center",
@@ -346,23 +414,27 @@ export function Button({
       }}
       onMouseLeave={(event) => {
         setIsHovered(false);
+        cancelScheduledActiveRelease();
         setIsActive(false);
         onMouseLeave?.(event);
       }}
       onPointerDown={(event) => {
+        cancelScheduledActiveRelease();
         setIsActive(true);
         event.stopPropagation();
         onPointerDown?.(event);
       }}
       onPointerUp={(event) => {
-        setIsActive(false);
+        releaseActiveAfterClick();
         onPointerUp?.(event);
       }}
       onPointerCancel={(event) => {
+        cancelScheduledActiveRelease();
         setIsActive(false);
         onPointerCancel?.(event);
       }}
       onPointerLeave={(event) => {
+        cancelScheduledActiveRelease();
         setIsActive(false);
         onPointerLeave?.(event);
       }}
