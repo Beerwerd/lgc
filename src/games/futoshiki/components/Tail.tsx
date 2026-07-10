@@ -1,11 +1,17 @@
 import type { CSSProperties } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import tailImage from "../assets/tail.png";
 import tailEditableImage from "../assets/tail_editable.png";
 import tailErrorImage from "../assets/tail_error.png";
 import tailSelectedImage from "../assets/tail_selected.png";
 
 type TailVariant = "board" | "number";
+
+type TailVisualState = {
+  isGiven?: boolean;
+  isInvalid?: boolean;
+  isSelected?: boolean;
+};
 
 type TailProps = {
   variant: TailVariant;
@@ -19,6 +25,9 @@ type TailProps = {
   flipAnimation?: {
     delayMs: number;
     durationMs: number;
+    fromIsGiven?: boolean;
+    fromIsInvalid?: boolean;
+    fromIsSelected?: boolean;
     fromNotes: number[];
     fromValue: number | null;
     runId: number;
@@ -91,6 +100,7 @@ export function Tail(props: TailProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const flipFrontRef = useRef<HTMLSpanElement>(null);
   const flipBackRef = useRef<HTMLSpanElement>(null);
+  const [releasedFlipBackRunId, setReleasedFlipBackRunId] = useState(0);
   const visibleNotes = value === null ? notes : [];
   const valueLabel =
     value === null
@@ -99,10 +109,44 @@ export function Tail(props: TailProps) {
         : "empty"
       : String(value);
   const isBoardTile = variant === "board";
-  const image =
-    isBoardTile && isSelected
+  const currentVisualState = {
+    isGiven,
+    isInvalid,
+    isSelected,
+  };
+  const frontVisualState = flipAnimation
+    ? {
+        isGiven: flipAnimation.fromIsGiven,
+        isInvalid: flipAnimation.fromIsInvalid,
+        isSelected: flipAnimation.fromIsSelected,
+      }
+    : currentVisualState;
+  const isFlipBackReleased =
+    !flipAnimation ||
+    flipAnimation.runId === 0 ||
+    releasedFlipBackRunId === flipAnimation.runId;
+  const backValue =
+    flipAnimation && !isFlipBackReleased ? flipAnimation.fromValue : value;
+  const backNotes =
+    flipAnimation && !isFlipBackReleased ? flipAnimation.fromNotes : notes;
+  const backVisualState =
+    flipAnimation && !isFlipBackReleased
+      ? frontVisualState
+      : currentVisualState;
+  const frontValue = resetAnimation
+    ? resetAnimation.fromValue
+    : flipAnimation
+    ? flipAnimation.fromValue
+    : value;
+  const frontNotes = resetAnimation
+    ? resetAnimation.fromNotes
+    : flipAnimation
+    ? flipAnimation.fromNotes
+    : visibleNotes;
+  const getImage = (visualState: TailVisualState) =>
+    isBoardTile && visualState.isSelected
       ? tailSelectedImage
-      : isBoardTile && !isGiven
+      : isBoardTile && !visualState.isGiven
       ? tailEditableImage
       : tailImage;
   const imageStyle: CSSProperties = {
@@ -118,10 +162,15 @@ export function Tail(props: TailProps) {
     ...imageStyle,
     zIndex: 1,
   };
-  const valueStyle: CSSProperties = {
+  const getValueStyle = (visualState: TailVisualState): CSSProperties => ({
     position: "relative",
     zIndex: 2,
     gridArea: "1 / 1",
+    color: isBoardTile
+      ? visualState.isGiven
+        ? "rgba(23, 21, 18, 0.9)"
+        : "#1f92ea"
+      : undefined,
     fontFamily: '"Futoshiki Baloo 2", system-ui, sans-serif',
     fontSize: "clamp(1.85rem, 8vw, 2.85rem)",
     fontWeight: 800,
@@ -130,7 +179,7 @@ export function Tail(props: TailProps) {
     transition: "transform 120ms ease",
     willChange: "transform",
     ...valueStyleOverride,
-  };
+  });
   const notesStyle: CSSProperties = {
     position: "relative",
     zIndex: 2,
@@ -213,6 +262,9 @@ export function Tail(props: TailProps) {
       return;
     }
 
+    const releaseBackContentTimeoutId = window.setTimeout(() => {
+      setReleasedFlipBackRunId(flipAnimation.runId);
+    }, flipAnimation.delayMs);
     const frontAnimation = flipFrontRef.current.animate(
       [
         { opacity: 1, transform: "rotateY(0deg)" },
@@ -241,6 +293,7 @@ export function Tail(props: TailProps) {
     );
 
     return () => {
+      window.clearTimeout(releaseBackContentTimeoutId);
       frontAnimation.cancel();
       backAnimation.cancel();
     };
@@ -312,20 +365,22 @@ export function Tail(props: TailProps) {
     resetAnimation?.runId,
   ]);
 
-  const renderTailChrome = () => (
+  const renderTailChrome = (visualState: TailVisualState) => (
     <>
       <img
         className="futoshiki-tail__image"
-        src={image}
+        src={getImage(visualState)}
         alt=""
         aria-hidden="true"
         style={imageStyle}
       />
-      {isBoardTile && isSelected && !isInvalid && (
+      {isBoardTile && visualState.isSelected && !visualState.isInvalid && (
         <span aria-hidden="true" style={selectedGlowStyle} />
       )}
-      {isInvalid && <span aria-hidden="true" style={invalidGlowStyle} />}
-      {isInvalid && (
+      {visualState.isInvalid && (
+        <span aria-hidden="true" style={invalidGlowStyle} />
+      )}
+      {visualState.isInvalid && (
         <img
           className="futoshiki-tail__image futoshiki-tail__image--error"
           src={tailErrorImage}
@@ -339,7 +394,8 @@ export function Tail(props: TailProps) {
 
   const renderTailTextContent = (
     contentValue: number | null,
-    contentNotes: number[]
+    contentNotes: number[],
+    visualState: TailVisualState
   ) => {
     const contentVisibleNotes = contentValue === null ? contentNotes : [];
 
@@ -363,7 +419,10 @@ export function Tail(props: TailProps) {
           </span>
         )}
         {contentValue !== null && (
-          <span className="futoshiki-tail__value" style={valueStyle}>
+          <span
+            className="futoshiki-tail__value"
+            style={getValueStyle(visualState)}
+          >
             {contentValue}
           </span>
         )}
@@ -373,11 +432,12 @@ export function Tail(props: TailProps) {
 
   const renderTailContent = (
     contentValue: number | null,
-    contentNotes: number[]
+    contentNotes: number[],
+    visualState: TailVisualState
   ) => (
     <>
-      {renderTailChrome()}
-      {renderTailTextContent(contentValue, contentNotes)}
+      {renderTailChrome(visualState)}
+      {renderTailTextContent(contentValue, contentNotes, visualState)}
     </>
   );
 
@@ -401,10 +461,9 @@ export function Tail(props: TailProps) {
             style={flipFaceStyle}
           >
             {renderTailContent(
-              resetAnimation?.fromValue ?? flipAnimation?.fromValue ?? value,
-              resetAnimation?.fromNotes ??
-                flipAnimation?.fromNotes ??
-                visibleNotes
+              frontValue,
+              frontNotes,
+              resetAnimation ? currentVisualState : frontVisualState
             )}
           </span>
           <span
@@ -413,11 +472,11 @@ export function Tail(props: TailProps) {
             aria-hidden="true"
             style={{ ...flipFaceStyle, opacity: 0 }}
           >
-            {renderTailContent(value, notes)}
+            {renderTailContent(backValue, backNotes, backVisualState)}
           </span>
         </>
       ) : (
-        renderTailContent(value, visibleNotes)
+        renderTailContent(value, visibleNotes, currentVisualState)
       )}
     </button>
   );

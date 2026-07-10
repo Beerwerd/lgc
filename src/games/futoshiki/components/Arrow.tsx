@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import downArrowImage from "../assets/down_arrow.png";
 import downArrowErrorImage from "../assets/down_arrow_error.png";
 import leftArrowImage from "../assets/left_arrow.png";
@@ -14,6 +14,12 @@ type ArrowProps = {
   direction?: ArrowDirection;
   orientation: "horizontal" | "vertical";
   isInvalid?: boolean;
+  newGameAnimation?: {
+    delayMs: number;
+    fromDirection?: ArrowDirection;
+    fromIsInvalid?: boolean;
+    runId: number;
+  };
   resetAnimation?: {
     delayMs: number;
     durationMs: number;
@@ -73,11 +79,37 @@ export function Arrow({
   direction,
   orientation,
   isInvalid,
+  newGameAnimation,
   resetAnimation,
   scale = 0.5,
 }: ArrowProps) {
   const slotRef = useRef<HTMLDivElement>(null);
+  const [switchedRunId, setSwitchedRunId] = useState(0);
   const resetRisePercent = orientation === "horizontal" ? 30 : 100;
+  const isHoldingPreviousArrow =
+    newGameAnimation !== undefined &&
+    newGameAnimation.runId !== 0 &&
+    switchedRunId !== newGameAnimation.runId;
+  const visibleDirection = isHoldingPreviousArrow
+    ? newGameAnimation.fromDirection
+    : direction;
+  const visibleIsInvalid = isHoldingPreviousArrow
+    ? newGameAnimation.fromIsInvalid
+    : isInvalid;
+
+  useEffect(() => {
+    if (!newGameAnimation || newGameAnimation.runId === 0) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setSwitchedRunId(newGameAnimation.runId);
+    }, newGameAnimation.delayMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [newGameAnimation?.delayMs, newGameAnimation?.runId]);
 
   useEffect(() => {
     if (!resetAnimation || resetAnimation.runId === 0 || !slotRef.current) {
@@ -114,17 +146,21 @@ export function Arrow({
     <div
       ref={slotRef}
       className={`futoshiki-board-mock__arrow is-${orientation}${
-        direction ? "" : " is-empty"
-      }${isInvalid ? " is-invalid" : ""}`}
+        visibleDirection ? "" : " is-empty"
+      }${visibleIsInvalid ? " is-invalid" : ""}`}
       style={arrowSlotStyle}
     >
-      {direction && (
+      {visibleDirection && (
         <img
-          className={`futoshiki-board-mock__arrow-glyph is-${direction}`}
-          src={isInvalid ? arrowErrorImages[direction] : arrowImages[direction]}
+          className={`futoshiki-board-mock__arrow-glyph is-${visibleDirection}`}
+          src={
+            visibleIsInvalid
+              ? arrowErrorImages[visibleDirection]
+              : arrowImages[visibleDirection]
+          }
           alt=""
           aria-hidden="true"
-          style={getArrowGlyphStyle(direction, scale)}
+          style={getArrowGlyphStyle(visibleDirection, scale)}
         />
       )}
     </div>

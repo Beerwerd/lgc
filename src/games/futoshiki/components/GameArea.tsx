@@ -48,9 +48,15 @@ type NewGameTailFlipProps = {
   runId: number;
 };
 
-type NewGameBoardSnapshot = {
+type BoardContentSnapshot = {
   boardNotes: BoardNotes;
   boardValues: BoardValues;
+};
+
+type NewGameBoardSnapshot = BoardContentSnapshot & {
+  level: FutoshikiLevel;
+  selectedCell: BoardCell | null;
+  validation: ValidationResult;
 };
 
 type ResetTailRiseAnimationConfig = {
@@ -231,6 +237,13 @@ function cloneBoardNotes(boardNotes: BoardNotes): BoardNotes {
   return boardNotes.map((row) => row.map((notes) => [...notes]));
 }
 
+function cloneValidationResult(validation: ValidationResult): ValidationResult {
+  return {
+    brokenArrowKeys: new Set(validation.brokenArrowKeys),
+    duplicateCellKeys: new Set(validation.duplicateCellKeys),
+  };
+}
+
 function getBoardTailStyle({
   isGiven,
   isAnimating,
@@ -265,7 +278,7 @@ export function GameArea({
     useState<NewGameBoardSnapshot | null>(null);
   const [resetAnimationRunId, setResetAnimationRunId] = useState(0);
   const [resetAnimationSnapshot, setResetAnimationSnapshot] =
-    useState<NewGameBoardSnapshot | null>(null);
+    useState<BoardContentSnapshot | null>(null);
   const { duplicateCellKeys, brokenArrowKeys } = validation;
   const isAnimating = newGameAnimationRunId !== 0 || resetAnimationRunId !== 0;
 
@@ -277,6 +290,9 @@ export function GameArea({
     setNewGameAnimationSnapshot({
       boardNotes: cloneBoardNotes(boardNotes),
       boardValues: cloneBoardValues(boardValues),
+      level,
+      selectedCell,
+      validation: cloneValidationResult(validation),
     });
     onStartNewLevel(nextDifficulty);
     setNewGameAnimationRunId((currentRunId) => currentRunId + 1);
@@ -370,21 +386,40 @@ export function GameArea({
                 resetAnimationRunId
               );
               const previousNewGameNotes =
-                newGameAnimationSnapshot?.boardNotes[boardRowIndex][
-                  boardColumnIndex
-                ] ?? boardNotes[boardRowIndex][boardColumnIndex];
-              const previousNewGameValue =
-                newGameAnimationSnapshot?.boardValues[boardRowIndex][
-                  boardColumnIndex
-                ] ?? value;
+                newGameAnimationSnapshot
+                  ? newGameAnimationSnapshot.boardNotes[boardRowIndex][
+                      boardColumnIndex
+                    ]
+                  : boardNotes[boardRowIndex][boardColumnIndex];
+              const previousNewGameValue = newGameAnimationSnapshot
+                ? newGameAnimationSnapshot.boardValues[boardRowIndex][
+                    boardColumnIndex
+                  ]
+                : value;
+              const previousNewGameIsGiven = newGameAnimationSnapshot
+                ? isGivenCell(newGameAnimationSnapshot.level, cell)
+                : isGiven;
+              const previousNewGameIsSelected = newGameAnimationSnapshot
+                ? newGameAnimationSnapshot.selectedCell?.rowIndex ===
+                    boardRowIndex &&
+                  newGameAnimationSnapshot.selectedCell.columnIndex ===
+                    boardColumnIndex
+                : isSelected;
+              const previousNewGameHasDuplicateError =
+                newGameAnimationSnapshot?.validation.duplicateCellKeys.has(
+                  getCellKey(cell)
+                ) ?? hasDuplicateError;
               const previousResetNotes =
-                resetAnimationSnapshot?.boardNotes[boardRowIndex][
-                  boardColumnIndex
-                ] ?? boardNotes[boardRowIndex][boardColumnIndex];
-              const previousResetValue =
-                resetAnimationSnapshot?.boardValues[boardRowIndex][
-                  boardColumnIndex
-                ] ?? value;
+                resetAnimationSnapshot
+                  ? resetAnimationSnapshot.boardNotes[boardRowIndex][
+                      boardColumnIndex
+                    ]
+                  : boardNotes[boardRowIndex][boardColumnIndex];
+              const previousResetValue = resetAnimationSnapshot
+                ? resetAnimationSnapshot.boardValues[boardRowIndex][
+                    boardColumnIndex
+                  ]
+                : value;
 
               return (
                 <Tail
@@ -399,6 +434,9 @@ export function GameArea({
                     flipAnimation
                       ? {
                           ...flipAnimation,
+                          fromIsGiven: previousNewGameIsGiven,
+                          fromIsInvalid: previousNewGameHasDuplicateError,
+                          fromIsSelected: previousNewGameIsSelected,
                           fromNotes: previousNewGameNotes,
                           fromValue: previousNewGameValue,
                         }
@@ -432,6 +470,22 @@ export function GameArea({
               const arrowKey = `${boardRowIndex}-${arrowColumnIndex}`;
               const arrowDirection = level.horizontalArrows[arrowKey];
               const hasArrowError = brokenArrowKeys.has(`h-${arrowKey}`);
+              const previousNewGameArrowDirection =
+                newGameAnimationSnapshot
+                  ? newGameAnimationSnapshot.level.horizontalArrows[arrowKey]
+                  : arrowDirection;
+              const previousNewGameHasArrowError =
+                newGameAnimationSnapshot?.validation.brokenArrowKeys.has(
+                  `h-${arrowKey}`
+                ) ?? hasArrowError;
+              const newGameArrowAnimation =
+                newGameTailFlipAnimation.getTailAnimation(
+                  {
+                    rowIndex: boardRowIndex,
+                    columnIndex: arrowColumnIndex + 1,
+                  },
+                  newGameAnimationRunId
+                );
               const resetAnimation = resetTailRiseAnimation.getTailAnimation(
                 arrowMidpoint,
                 resetAnimationRunId
@@ -443,6 +497,16 @@ export function GameArea({
                   orientation="horizontal"
                   direction={arrowDirection}
                   isInvalid={hasArrowError}
+                  newGameAnimation={
+                    newGameArrowAnimation
+                      ? {
+                          delayMs: newGameArrowAnimation.delayMs,
+                          fromDirection: previousNewGameArrowDirection,
+                          fromIsInvalid: previousNewGameHasArrowError,
+                          runId: newGameArrowAnimation.runId,
+                        }
+                      : undefined
+                  }
                   resetAnimation={resetAnimation}
                 />
               );
@@ -458,6 +522,19 @@ export function GameArea({
               const arrowKey = `${arrowRowIndex}-${boardColumnIndex}`;
               const arrowDirection = level.verticalArrows[arrowKey];
               const hasArrowError = brokenArrowKeys.has(`v-${arrowKey}`);
+              const previousNewGameArrowDirection =
+                newGameAnimationSnapshot
+                  ? newGameAnimationSnapshot.level.verticalArrows[arrowKey]
+                  : arrowDirection;
+              const previousNewGameHasArrowError =
+                newGameAnimationSnapshot?.validation.brokenArrowKeys.has(
+                  `v-${arrowKey}`
+                ) ?? hasArrowError;
+              const newGameArrowAnimation =
+                newGameTailFlipAnimation.getTailAnimation(
+                  tailBelow,
+                  newGameAnimationRunId
+                );
               const resetAnimation = resetTailRiseAnimation.getTailAnimation(
                 tailBelow,
                 resetAnimationRunId
@@ -469,6 +546,16 @@ export function GameArea({
                   orientation="vertical"
                   direction={arrowDirection}
                   isInvalid={hasArrowError}
+                  newGameAnimation={
+                    newGameArrowAnimation
+                      ? {
+                          delayMs: newGameArrowAnimation.delayMs,
+                          fromDirection: previousNewGameArrowDirection,
+                          fromIsInvalid: previousNewGameHasArrowError,
+                          runId: newGameArrowAnimation.runId,
+                        }
+                      : undefined
+                  }
                   resetAnimation={resetAnimation}
                 />
               );
