@@ -4,21 +4,22 @@ import newIconImage from "../assets/new_icon.png";
 import notesIconImage from "../assets/notes_icon.png";
 import questionIconImage from "../assets/question_icon.png";
 import resetIconImage from "../assets/reset_icon.png";
-import type { BoardCell, BoardNotes, BoardValues } from "../logic";
+import type {
+  BoardCell,
+  BoardNotes,
+  BoardValues,
+  Difficulty,
+  FutoshikiLevel,
+} from "../logic";
 import {
   BOARD_SIZE,
   getCellKey,
-  horizontalArrows,
   isGivenCell,
-  verticalArrows,
   type ValidationResult,
 } from "../logic";
 import { ActionButton } from "./ActionButton";
 import { Arrow } from "./Arrow";
-import {
-  DifficultySelector,
-  type Difficulty,
-} from "./DifficultySelector";
+import { DifficultySelector } from "./DifficultySelector";
 import { Tail } from "./Tail";
 
 type GameAreaProps = {
@@ -26,12 +27,13 @@ type GameAreaProps = {
   boardNotes: BoardNotes;
   selectedCell: BoardCell | null;
   validation: ValidationResult;
+  difficulty: Difficulty;
   isNotesModeSelected: boolean;
+  level: FutoshikiLevel;
   onOpenHelpModal: () => void;
-  onDifficultyChange: (difficulty: Difficulty) => void;
   onResetBoard: () => void;
   onSelectCell: (cell: BoardCell) => void;
-  onStartNewLevel: () => void;
+  onStartNewLevel: (difficulty?: Difficulty) => void;
   onToggleNotesMode: () => void;
 };
 
@@ -249,9 +251,10 @@ export function GameArea({
   boardNotes,
   selectedCell,
   validation,
+  difficulty,
   isNotesModeSelected,
+  level,
   onOpenHelpModal,
-  onDifficultyChange,
   onResetBoard,
   onSelectCell,
   onStartNewLevel,
@@ -266,7 +269,7 @@ export function GameArea({
   const { duplicateCellKeys, brokenArrowKeys } = validation;
   const isAnimating = newGameAnimationRunId !== 0 || resetAnimationRunId !== 0;
 
-  const startNewLevel = () => {
+  const startNewLevel = (nextDifficulty?: Difficulty) => {
     if (isAnimating) {
       return;
     }
@@ -275,7 +278,7 @@ export function GameArea({
       boardNotes: cloneBoardNotes(boardNotes),
       boardValues: cloneBoardValues(boardValues),
     });
-    onStartNewLevel();
+    onStartNewLevel(nextDifficulty);
     setNewGameAnimationRunId((currentRunId) => currentRunId + 1);
   };
 
@@ -332,10 +335,8 @@ export function GameArea({
           onClick={onOpenHelpModal}
         />
         <DifficultySelector
-          onChange={(difficulty) => {
-            onDifficultyChange(difficulty);
-            startNewLevel();
-          }}
+          activeDifficulty={difficulty}
+          onChange={(nextDifficulty) => startNewLevel(nextDifficulty)}
         />
       </div>
       <div style={boardStyle}>
@@ -355,7 +356,7 @@ export function GameArea({
                 rowIndex: boardRowIndex,
                 columnIndex: boardColumnIndex,
               };
-              const isGiven = isGivenCell(cell);
+              const isGiven = isGivenCell(level, cell);
               const hasDuplicateError = duplicateCellKeys.has(getCellKey(cell));
               const isSelected =
                 selectedCell?.rowIndex === boardRowIndex &&
@@ -429,7 +430,7 @@ export function GameArea({
                 columnIndex: arrowColumnIndex + 0.5,
               };
               const arrowKey = `${boardRowIndex}-${arrowColumnIndex}`;
-              const arrowDirection = horizontalArrows[arrowKey];
+              const arrowDirection = level.horizontalArrows[arrowKey];
               const hasArrowError = brokenArrowKeys.has(`h-${arrowKey}`);
               const resetAnimation = resetTailRiseAnimation.getTailAnimation(
                 arrowMidpoint,
@@ -455,7 +456,7 @@ export function GameArea({
                 columnIndex: boardColumnIndex,
               };
               const arrowKey = `${arrowRowIndex}-${boardColumnIndex}`;
-              const arrowDirection = verticalArrows[arrowKey];
+              const arrowDirection = level.verticalArrows[arrowKey];
               const hasArrowError = brokenArrowKeys.has(`v-${arrowKey}`);
               const resetAnimation = resetTailRiseAnimation.getTailAnimation(
                 tailBelow,
@@ -483,7 +484,7 @@ export function GameArea({
           icon={newIconImage}
           variant="green"
           size={54}
-          onClick={startNewLevel}
+          onClick={() => startNewLevel()}
         />
         <ActionButton
           icon={notesIconImage}

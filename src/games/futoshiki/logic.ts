@@ -1,120 +1,143 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
+import {
+  BOARD_SIZE,
+  NUMBER_OPTIONS,
+  createInitialBoardNotes,
+  createInitialBoardValues,
+  generateFutoshikiLevel,
+  isGivenCell,
+  type BoardCell,
+  type BoardNotes,
+  type BoardValues,
+  type Difficulty,
+  type FutoshikiLevel,
+  type HorizontalArrowDirection,
+  type VerticalArrowDirection,
+} from "./generator";
 
-export type BoardValue = number | null;
-export type BoardValues = BoardValue[][];
-export type BoardNotes = number[][][];
-export type ArrowDirection = 'left' | 'right' | 'up' | 'down';
-
-export type BoardCell = {
-  rowIndex: number;
-  columnIndex: number;
+export {
+  BOARD_SIZE,
+  NUMBER_OPTIONS,
+  createInitialBoardNotes,
+  createInitialBoardValues,
+  generateFutoshikiLevel,
+  isGivenCell,
 };
+export type {
+  ArrowDirection,
+  BoardCell,
+  BoardNotes,
+  BoardValue,
+  BoardValues,
+  Difficulty,
+  FutoshikiLevel,
+  HorizontalArrows,
+  VerticalArrows,
+} from "./generator";
 
 export type ValidationResult = {
-  duplicateCellKeys: Set<string>;
   brokenArrowKeys: Set<string>;
+  duplicateCellKeys: Set<string>;
 };
 
-export const BOARD_SIZE = 5;
-export const NUMBER_OPTIONS = [1, 2, 3, 4, 5];
+export const getCellKey = ({ rowIndex, columnIndex }: BoardCell) =>
+  `${rowIndex}-${columnIndex}`;
 
-const initialBoardValues: BoardValues = [
-  [4, null, 5, 3, null],
-  [2, null, null, null, null],
-  [null, null, null, null, null],
-  [1, null, 2, null, null],
-  [3, 1, null, 2, 5],
-];
-
-export const horizontalArrows: Record<string, Extract<ArrowDirection, 'left' | 'right'>> = {
-  '0-0': 'right',
-  '0-2': 'right',
-  '0-3': 'right',
-  '1-0': 'left',
-  '2-0': 'right',
-  '2-3': 'right',
-  '3-0': 'left',
-  '3-1': 'right',
-  '4-3': 'left',
-};
-
-export const verticalArrows: Record<string, Extract<ArrowDirection, 'up' | 'down'>> = {
-  '0-0': 'down',
-  '0-1': 'up',
-  '0-3': 'down',
-  '1-1': 'down',
-  '1-2': 'down',
-  '1-4': 'down',
-  '2-2': 'up',
-  '2-3': 'up',
-  '3-3': 'down',
-};
-
-export const getCellKey = ({ rowIndex, columnIndex }: BoardCell) => `${rowIndex}-${columnIndex}`;
-
-export function createInitialBoardValues() {
-  return initialBoardValues.map((row) => [...row]);
+function isHorizontalPairValid(
+  leftValue: number,
+  rightValue: number,
+  direction: HorizontalArrowDirection
+) {
+  return direction === "left"
+    ? leftValue < rightValue
+    : leftValue > rightValue;
 }
 
-export function createInitialBoardNotes(): BoardNotes {
-  return Array.from({ length: BOARD_SIZE }, () =>
-    Array.from({ length: BOARD_SIZE }, () => []),
-  );
+function isVerticalPairValid(
+  topValue: number,
+  bottomValue: number,
+  direction: VerticalArrowDirection
+) {
+  return direction === "up" ? topValue < bottomValue : topValue > bottomValue;
 }
 
-export function isGivenCell({ rowIndex, columnIndex }: BoardCell) {
-  return initialBoardValues[rowIndex][columnIndex] !== null;
-}
-
-export function setBoardCellValue(boardValues: BoardValues, selectedCell: BoardCell, number: number) {
-  if (isGivenCell(selectedCell)) {
+export function setBoardCellValue(
+  level: FutoshikiLevel,
+  boardValues: BoardValues,
+  selectedCell: BoardCell,
+  number: number
+) {
+  if (isGivenCell(level, selectedCell)) {
     return boardValues;
   }
 
   return boardValues.map((row, rowIndex) =>
     row.map((value, columnIndex) => {
-      if (rowIndex !== selectedCell.rowIndex || columnIndex !== selectedCell.columnIndex) {
+      if (
+        rowIndex !== selectedCell.rowIndex ||
+        columnIndex !== selectedCell.columnIndex
+      ) {
         return value;
       }
 
       return value === number ? null : number;
-    }),
+    })
   );
 }
 
-export function clearBoardCellValue(boardValues: BoardValues, selectedCell: BoardCell) {
-  if (isGivenCell(selectedCell)) {
+export function clearBoardCellValue(
+  level: FutoshikiLevel,
+  boardValues: BoardValues,
+  selectedCell: BoardCell
+) {
+  if (isGivenCell(level, selectedCell)) {
     return boardValues;
   }
 
   return boardValues.map((row, rowIndex) =>
     row.map((value, columnIndex) =>
-      rowIndex === selectedCell.rowIndex && columnIndex === selectedCell.columnIndex ? null : value,
-    ),
+      rowIndex === selectedCell.rowIndex &&
+      columnIndex === selectedCell.columnIndex
+        ? null
+        : value
+    )
   );
 }
 
-export function clearBoardCellNotes(boardNotes: BoardNotes, selectedCell: BoardCell) {
+export function clearBoardCellNotes(
+  boardNotes: BoardNotes,
+  selectedCell: BoardCell
+) {
   return boardNotes.map((row, rowIndex) =>
     row.map((notes, columnIndex) =>
-      rowIndex === selectedCell.rowIndex && columnIndex === selectedCell.columnIndex ? [] : notes,
-    ),
+      rowIndex === selectedCell.rowIndex &&
+      columnIndex === selectedCell.columnIndex
+        ? []
+        : notes
+    )
   );
 }
 
 export function toggleBoardCellNote(
+  level: FutoshikiLevel,
   boardNotes: BoardNotes,
   boardValues: BoardValues,
   selectedCell: BoardCell,
-  number: number,
+  number: number
 ) {
-  if (isGivenCell(selectedCell) || boardValues[selectedCell.rowIndex][selectedCell.columnIndex]) {
+  if (
+    isGivenCell(level, selectedCell) ||
+    boardValues[selectedCell.rowIndex][selectedCell.columnIndex]
+  ) {
     return clearBoardCellNotes(boardNotes, selectedCell);
   }
 
   return boardNotes.map((row, rowIndex) =>
     row.map((notes, columnIndex) => {
-      if (rowIndex !== selectedCell.rowIndex || columnIndex !== selectedCell.columnIndex) {
+      if (
+        rowIndex !== selectedCell.rowIndex ||
+        columnIndex !== selectedCell.columnIndex
+      ) {
         return notes;
       }
 
@@ -123,11 +146,14 @@ export function toggleBoardCellNote(
       }
 
       return [...notes, number].sort((left, right) => left - right);
-    }),
+    })
   );
 }
 
-export function validateBoard(boardValues: BoardValues): ValidationResult {
+export function validateBoard(
+  boardValues: BoardValues,
+  level: FutoshikiLevel
+): ValidationResult {
   const duplicateCellKeys = new Set<string>();
   const brokenArrowKeys = new Set<string>();
 
@@ -156,18 +182,18 @@ export function validateBoard(boardValues: BoardValues): ValidationResult {
       Array.from({ length: BOARD_SIZE }, (_, columnIndex) => ({
         rowIndex: index,
         columnIndex,
-      })),
+      }))
     );
     markDuplicates(
       Array.from({ length: BOARD_SIZE }, (_, rowIndex) => ({
         rowIndex,
         columnIndex: index,
-      })),
+      }))
     );
   }
 
-  Object.entries(horizontalArrows).forEach(([arrowKey, direction]) => {
-    const [rowIndex, columnIndex] = arrowKey.split('-').map(Number);
+  Object.entries(level.horizontalArrows).forEach(([arrowKey, direction]) => {
+    const [rowIndex, columnIndex] = arrowKey.split("-").map(Number);
     const leftValue = boardValues[rowIndex][columnIndex];
     const rightValue = boardValues[rowIndex][columnIndex + 1];
 
@@ -175,15 +201,13 @@ export function validateBoard(boardValues: BoardValues): ValidationResult {
       return;
     }
 
-    const isValid = direction === 'left' ? leftValue < rightValue : leftValue > rightValue;
-
-    if (!isValid) {
+    if (!isHorizontalPairValid(leftValue, rightValue, direction)) {
       brokenArrowKeys.add(`h-${arrowKey}`);
     }
   });
 
-  Object.entries(verticalArrows).forEach(([arrowKey, direction]) => {
-    const [rowIndex, columnIndex] = arrowKey.split('-').map(Number);
+  Object.entries(level.verticalArrows).forEach(([arrowKey, direction]) => {
+    const [rowIndex, columnIndex] = arrowKey.split("-").map(Number);
     const topValue = boardValues[rowIndex][columnIndex];
     const bottomValue = boardValues[rowIndex + 1][columnIndex];
 
@@ -191,20 +215,21 @@ export function validateBoard(boardValues: BoardValues): ValidationResult {
       return;
     }
 
-    const isValid = direction === 'up' ? topValue < bottomValue : topValue > bottomValue;
-
-    if (!isValid) {
+    if (!isVerticalPairValid(topValue, bottomValue, direction)) {
       brokenArrowKeys.add(`v-${arrowKey}`);
     }
   });
 
   return {
-    duplicateCellKeys,
     brokenArrowKeys,
+    duplicateCellKeys,
   };
 }
 
-export function isBoardComplete(boardValues: BoardValues, validation: ValidationResult) {
+export function isBoardComplete(
+  boardValues: BoardValues,
+  validation: ValidationResult
+) {
   return (
     boardValues.every((row) => row.every((value) => value !== null)) &&
     validation.duplicateCellKeys.size === 0 &&
@@ -213,66 +238,96 @@ export function isBoardComplete(boardValues: BoardValues, validation: Validation
 }
 
 export function useFutoshikiGameState() {
-  const [boardValues, setBoardValues] = useState(createInitialBoardValues);
+  const [difficulty, setDifficulty] = useState<Difficulty>("easy");
+  const [level, setLevel] = useState(() => generateFutoshikiLevel("easy"));
+  const [boardValues, setBoardValues] = useState(() =>
+    createInitialBoardValues(level)
+  );
   const [boardNotes, setBoardNotes] = useState(createInitialBoardNotes);
   const [selectedCell, setSelectedCell] = useState<BoardCell | null>(null);
-  const validation = useMemo(() => validateBoard(boardValues), [boardValues]);
+  const validation = useMemo(
+    () => validateBoard(boardValues, level),
+    [boardValues, level]
+  );
   const isLevelComplete = isBoardComplete(boardValues, validation);
 
+  const resetLevel = () => {
+    setBoardValues(createInitialBoardValues(level));
+    setBoardNotes(createInitialBoardNotes());
+    setSelectedCell(null);
+  };
+
+  const startNewLevel = (nextDifficulty = difficulty) => {
+    const nextLevel = generateFutoshikiLevel(nextDifficulty);
+
+    setDifficulty(nextDifficulty);
+    setLevel(nextLevel);
+    setBoardValues(createInitialBoardValues(nextLevel));
+    setBoardNotes(createInitialBoardNotes());
+    setSelectedCell(null);
+  };
+
   const selectCell = (cell: BoardCell) => {
-    if (!isGivenCell(cell)) {
+    if (!isGivenCell(level, cell)) {
       setSelectedCell(cell);
     }
   };
 
   const selectNumber = (number: number) => {
-    if (!selectedCell || isGivenCell(selectedCell)) {
+    if (!selectedCell || isGivenCell(level, selectedCell)) {
       return;
     }
 
     setBoardValues((currentBoardValues) =>
-      setBoardCellValue(currentBoardValues, selectedCell, number),
+      setBoardCellValue(level, currentBoardValues, selectedCell, number)
     );
-    setBoardNotes((currentBoardNotes) => clearBoardCellNotes(currentBoardNotes, selectedCell));
+    setBoardNotes((currentBoardNotes) =>
+      clearBoardCellNotes(currentBoardNotes, selectedCell)
+    );
   };
 
   const toggleSelectedNote = (number: number) => {
-    if (!selectedCell || isGivenCell(selectedCell)) {
+    if (!selectedCell || isGivenCell(level, selectedCell)) {
       return;
     }
 
     setBoardNotes((currentBoardNotes) =>
-      toggleBoardCellNote(currentBoardNotes, boardValues, selectedCell, number),
+      toggleBoardCellNote(
+        level,
+        currentBoardNotes,
+        boardValues,
+        selectedCell,
+        number
+      )
     );
   };
 
   const clearSelectedCell = () => {
-    if (!selectedCell || isGivenCell(selectedCell)) {
+    if (!selectedCell || isGivenCell(level, selectedCell)) {
       return;
     }
 
     setBoardValues((currentBoardValues) =>
-      clearBoardCellValue(currentBoardValues, selectedCell),
+      clearBoardCellValue(level, currentBoardValues, selectedCell)
     );
-    setBoardNotes((currentBoardNotes) => clearBoardCellNotes(currentBoardNotes, selectedCell));
-  };
-
-  const resetLevel = () => {
-    setBoardValues(createInitialBoardValues());
-    setBoardNotes(createInitialBoardNotes());
-    setSelectedCell(null);
+    setBoardNotes((currentBoardNotes) =>
+      clearBoardCellNotes(currentBoardNotes, selectedCell)
+    );
   };
 
   return {
-    boardValues,
     boardNotes,
-    selectedCell,
-    validation,
+    boardValues,
+    clearSelectedCell,
+    difficulty,
     isLevelComplete,
+    level,
+    resetLevel,
     selectCell,
     selectNumber,
+    selectedCell,
+    startNewLevel,
     toggleSelectedNote,
-    clearSelectedCell,
-    resetLevel,
+    validation,
   };
 }

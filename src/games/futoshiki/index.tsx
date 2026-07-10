@@ -9,13 +9,19 @@ import { GameName } from "./components/GameName";
 import { HowToPlayDialog } from "./components/HowToPlayDialog";
 import { Tail } from "./components/Tail";
 import "./futoshiki.css";
-import { NUMBER_OPTIONS, useFutoshikiGameState } from "./logic";
+import {
+  NUMBER_OPTIONS,
+  useFutoshikiGameState,
+  type Difficulty,
+} from "./logic";
 import previewGif from "./preview.gif";
 
 function FutoshikiGame({ resources }: GameRuntimeProps) {
   const {
     boardValues,
+    difficulty,
     boardNotes,
+    level,
     selectedCell,
     validation,
     isLevelComplete,
@@ -24,6 +30,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
     toggleSelectedNote,
     clearSelectedCell,
     resetLevel,
+    startNewLevel: generateNewLevel,
   } = useFutoshikiGameState();
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isHelpModalClosing, setIsHelpModalClosing] = useState(false);
@@ -43,8 +50,8 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
     resetLevel();
   };
 
-  const startNewLevel = () => {
-    resetLevel();
+  const startNewLevel = (nextDifficulty?: Difficulty) => {
+    generateNewLevel(nextDifficulty);
     setIsCompletionModalOpen(false);
   };
 
@@ -108,7 +115,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
   ]);
 
   const startNextLevel = () => {
-    resetLevel();
+    generateNewLevel();
     setIsCompletionModalOpen(false);
   };
 
@@ -137,8 +144,9 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
         boardNotes={boardNotes}
         selectedCell={selectedCell}
         validation={validation}
+        difficulty={difficulty}
         isNotesModeSelected={isNotesModeSelected}
-        onDifficultyChange={() => setIsCompletionModalOpen(false)}
+        level={level}
         onOpenHelpModal={openHelpModal}
         onResetBoard={resetBoard}
         onSelectCell={selectCell}

@@ -3,9 +3,8 @@ import easyImage from "../assets/easy.png";
 import easyDisabledImage from "../assets/easy_disabled.png";
 import hardImage from "../assets/hard.png";
 import hardDisabledImage from "../assets/hard_disabled.png";
+import type { Difficulty } from "../logic";
 import { Button } from "./Button";
-
-export type Difficulty = "easy" | "hard";
 
 type DifficultySelectorProps = {
   activeDifficulty?: Difficulty;
