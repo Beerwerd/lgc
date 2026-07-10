@@ -1,36 +1,16 @@
 import { useEffect, useState } from "react";
 import type { GameModule, GameRuntimeProps } from "../../platform/types";
 import clearIconImage from "./assets/clear_icon.png";
-import newIconImage from "./assets/new_icon.png";
-import notesIconImage from "./assets/notes_icon.png";
-import questionIconImage from "./assets/question_icon.png";
-import resetIconImage from "./assets/reset_icon.png";
 import coverImage from "./cover.png";
 import { ActionButton } from "./components/ActionButton";
-import { Arrow } from "./components/Arrow";
 import { Button } from "./components/Button";
-import { DifficultySelector } from "./components/DifficultySelector";
+import { GameArea } from "./components/GameArea";
 import { GameName } from "./components/GameName";
 import { HowToPlayDialog } from "./components/HowToPlayDialog";
 import { Tail } from "./components/Tail";
 import "./futoshiki.css";
-import {
-  getCellKey,
-  horizontalArrows,
-  isGivenCell,
-  NUMBER_OPTIONS,
-  useFutoshikiGameState,
-  verticalArrows,
-} from "./logic";
+import { NUMBER_OPTIONS, useFutoshikiGameState } from "./logic";
 import previewGif from "./preview.gif";
-
-const boardRows = Array.from({ length: 9 }, (_, rowIndex) =>
-  Array.from({ length: 9 }, (_, columnIndex) => ({
-    key: `${rowIndex}-${columnIndex}`,
-    rowIndex,
-    columnIndex,
-  }))
-);
 
 function FutoshikiGame({ resources }: GameRuntimeProps) {
   const {
@@ -80,8 +60,6 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
 
     selectNumber(number);
   };
-
-  const { duplicateCellKeys, brokenArrowKeys } = validation;
 
   useEffect(() => {
     if (isLevelComplete) {
@@ -154,115 +132,18 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
 
       <div className="futoshiki-spacer" />
 
-      <section className="futoshiki-block futoshiki-board-block">
-        <div className="futoshiki-game-controls-row">
-          <ActionButton
-            icon={questionIconImage}
-            variant="blue"
-            size={54}
-            onClick={openHelpModal}
-          />
-          <DifficultySelector />
-        </div>
-        <div className="futoshiki-board-mock">
-          {boardRows.flatMap((row) =>
-            row.map(({ key, rowIndex, columnIndex }) => {
-              const isTile = rowIndex % 2 === 0 && columnIndex % 2 === 0;
-              const isHorizontalArrowSlot =
-                rowIndex % 2 === 0 && columnIndex % 2 === 1;
-              const isVerticalArrowSlot =
-                rowIndex % 2 === 1 && columnIndex % 2 === 0;
-
-              if (isTile) {
-                const boardRowIndex = rowIndex / 2;
-                const boardColumnIndex = columnIndex / 2;
-                const value = boardValues[boardRowIndex][boardColumnIndex];
-                const cell = {
-                  rowIndex: boardRowIndex,
-                  columnIndex: boardColumnIndex,
-                };
-                const isGiven = isGivenCell(cell);
-                const hasDuplicateError = duplicateCellKeys.has(
-                  getCellKey(cell)
-                );
-                const isSelected =
-                  selectedCell?.rowIndex === boardRowIndex &&
-                  selectedCell.columnIndex === boardColumnIndex;
-
-                return (
-                  <Tail
-                    key={key}
-                    variant="board"
-                    value={value}
-                    notes={boardNotes[boardRowIndex][boardColumnIndex]}
-                    isGiven={isGiven}
-                    isSelected={isSelected}
-                    isInvalid={hasDuplicateError}
-                    onClick={() => selectCell(cell)}
-                  />
-                );
-              }
-
-              if (isHorizontalArrowSlot) {
-                const boardRowIndex = rowIndex / 2;
-                const arrowColumnIndex = (columnIndex - 1) / 2;
-                const arrowKey = `${boardRowIndex}-${arrowColumnIndex}`;
-                const arrowDirection = horizontalArrows[arrowKey];
-                const hasArrowError = brokenArrowKeys.has(`h-${arrowKey}`);
-
-                return (
-                  <Arrow
-                    key={key}
-                    orientation="horizontal"
-                    direction={arrowDirection}
-                    isInvalid={hasArrowError}
-                  />
-                );
-              }
-
-              if (isVerticalArrowSlot) {
-                const arrowRowIndex = (rowIndex - 1) / 2;
-                const boardColumnIndex = columnIndex / 2;
-                const arrowKey = `${arrowRowIndex}-${boardColumnIndex}`;
-                const arrowDirection = verticalArrows[arrowKey];
-                const hasArrowError = brokenArrowKeys.has(`v-${arrowKey}`);
-
-                return (
-                  <Arrow
-                    key={key}
-                    orientation="vertical"
-                    direction={arrowDirection}
-                    isInvalid={hasArrowError}
-                  />
-                );
-              }
-
-              return <div className="futoshiki-board-mock__gap" key={key} />;
-            })
-          )}
-        </div>
-
-        <div className="futoshiki-board-actions">
-          <ActionButton
-            icon={newIconImage}
-            variant="green"
-            size={54}
-            onClick={startNewLevel}
-          />
-          <ActionButton
-            icon={notesIconImage}
-            size={isNotesModeSelected ? 50 : 54}
-            variant={isNotesModeSelected ? "lightBlue" : "purple"}
-            onClick={toggleNotesMode}
-          />
-          <ActionButton
-            icon={resetIconImage}
-            variant="yellow"
-            size={54}
-            onClick={resetBoard}
-          />
-        </div>
-      </section>
+      <GameArea
+        boardValues={boardValues}
+        boardNotes={boardNotes}
+        selectedCell={selectedCell}
+        validation={validation}
+        isNotesModeSelected={isNotesModeSelected}
+        onOpenHelpModal={openHelpModal}
+        onResetBoard={resetBoard}
+        onSelectCell={selectCell}
+        onStartNewLevel={startNewLevel}
+        onToggleNotesMode={toggleNotesMode}
+      />
 
       <div className="futoshiki-spacer" />
 

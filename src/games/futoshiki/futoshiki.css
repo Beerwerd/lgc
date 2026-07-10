@@ -59,22 +59,13 @@
   box-shadow: none;
 }
 
-.futoshiki-title-logo-row,
-.futoshiki-game-controls-row {
+.futoshiki-title-logo-row {
   display: flex;
   width: 100%;
   min-width: 0;
   align-items: center;
-}
-
-.futoshiki-title-logo-row {
   justify-content: center;
   transform: translateY(-14px);
-}
-
-.futoshiki-game-controls-row {
-  justify-content: space-between;
-  gap: clamp(14px, 4vw, 32px);
 }
 
 .futoshiki-title-name {
@@ -152,187 +143,6 @@
   min-height: 12px;
 }
 
-.futoshiki-board-block {
-  width: 100%;
-  min-height: clamp(260px, 38vh, 420px);
-  align-content: start;
-  gap: clamp(12px, 2.4vw, 22px);
-  padding-bottom: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.futoshiki-board-mock {
-  display: grid;
-  width: 100%;
-  aspect-ratio: 1;
-  justify-self: center;
-  grid-template-columns: repeat(4, minmax(0, 1fr) minmax(18px, 0.34fr)) minmax(0, 1fr);
-  grid-template-rows: repeat(4, minmax(0, 1fr) minmax(18px, 0.34fr)) minmax(0, 1fr);
-  margin: 0;
-  transform: translateY(10px);
-}
-
-.futoshiki-board-mock__cell {
-  position: relative;
-  display: grid;
-  min-width: 0;
-  min-height: 0;
-  place-items: center;
-  padding: 0;
-  border: 2px solid rgba(173, 176, 178, 0.34);
-  border-radius: 8px;
-  color: rgba(23, 21, 18, 0.86);
-  background: #fdfcf8;
-  box-shadow:
-    0 2px 8px rgba(23, 21, 18, 0.08),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.7);
-  font-size: clamp(1.4rem, 7vw, 2.4rem);
-  font-weight: 850;
-  line-height: 1;
-}
-
-.futoshiki-tail__image {
-  width: 100%;
-  height: 100%;
-  grid-area: 1 / 1;
-  object-fit: fill;
-  pointer-events: none;
-  transition: transform 120ms ease;
-  will-change: transform;
-}
-
-.futoshiki-tail__image--error {
-  z-index: 1;
-}
-
-.futoshiki-tail__value {
-  position: relative;
-  z-index: 2;
-  grid-area: 1 / 1;
-  font-family: "Futoshiki Baloo 2", system-ui, sans-serif;
-  font-size: clamp(1.85rem, 8vw, 2.85rem);
-  font-weight: 800;
-  line-height: 0.82;
-  pointer-events: none;
-  transition: transform 120ms ease;
-  will-change: transform;
-}
-
-.futoshiki-tail__notes {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  width: 78%;
-  height: 78%;
-  grid-area: 1 / 1;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  align-items: center;
-  justify-items: center;
-  color: #07375e;
-  font-family: "Futoshiki Baloo 2", system-ui, sans-serif;
-  font-size: clamp(1rem, 3.05vw, 1.08rem);
-  font-weight: 850;
-  line-height: 1;
-  pointer-events: none;
-}
-
-.futoshiki-tail__note {
-  display: grid;
-  min-width: 0;
-  place-items: center;
-}
-
-.futoshiki-board-mock__cell:not(:disabled) {
-  cursor: pointer;
-}
-
-.futoshiki-board-mock__cell.is-given {
-  opacity: 1;
-  color: rgba(23, 21, 18, 0.9);
-  cursor: default;
-}
-
-.futoshiki-board-mock__cell:not(.is-given) {
-  color: #1f92ea;
-}
-
-.futoshiki-board-mock__cell.is-selected {
-  border-color: #42a8e8;
-  background: #d6ebfb;
-  box-shadow:
-    0 2px 8px rgba(23, 21, 18, 0.08),
-    inset 0 0 0 1px rgba(66, 168, 232, 0.3);
-}
-
-.futoshiki-board-mock__cell.is-invalid {
-  border-color: #ff4252;
-  background: #fdfcf8;
-  box-shadow:
-    0 2px 8px rgba(23, 21, 18, 0.08),
-    inset 0 0 0 1px rgba(255, 48, 66, 0.18);
-}
-
-.futoshiki-board-mock__cell.is-selected.is-invalid {
-  border-color: #ff4252;
-  background: #d6ebfb;
-  box-shadow:
-    0 2px 8px rgba(23, 21, 18, 0.08),
-    inset 0 0 0 1px rgba(255, 48, 66, 0.22);
-}
-
-.futoshiki-board-mock__arrow,
-.futoshiki-board-mock__gap {
-  display: grid;
-  min-width: 0;
-  min-height: 0;
-  place-items: center;
-}
-
-.futoshiki-board-mock__arrow {
-  position: relative;
-  z-index: 3;
-}
-
-.futoshiki-board-mock__arrow-glyph {
-  --futoshiki-arrow-x: 0px;
-  --futoshiki-arrow-y: 0px;
-
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: none;
-  object-fit: contain;
-  pointer-events: none;
-  transform: translate(var(--futoshiki-arrow-x), var(--futoshiki-arrow-y)) scale(0.50);
-}
-
-.futoshiki-board-mock__arrow-glyph.is-right {
-  --futoshiki-arrow-x: -4px;
-}
-
-.futoshiki-board-mock__arrow-glyph.is-left {
-  --futoshiki-arrow-x: -5px;
-}
-
-.futoshiki-board-mock__arrow-glyph.is-up {
-  --futoshiki-arrow-y: -5px;
-}
-.futoshiki-board-mock__arrow-glyph.is-down {
-  --futoshiki-arrow-y: -6px;
-}
-
-.futoshiki-board-actions {
-  display: flex;
-  width: 100%;
-  justify-self: center;
-  align-items: center;
-  justify-content: space-around;
-  margin-top: 20px;
-}
-
 .futoshiki-number-block {
   width: 100%;
   min-height: 74px;
@@ -382,19 +192,11 @@
   height: 108% !important;
 }
 
-.futoshiki-tail,
-.futoshiki-tail:hover,
-.futoshiki-tail:active,
-.futoshiki-tail:focus,
-.futoshiki-tail:focus-visible,
 .futoshiki-number-line .futoshiki-tail,
 .futoshiki-number-line .futoshiki-tail:hover,
 .futoshiki-number-line .futoshiki-tail:active,
 .futoshiki-number-line .futoshiki-tail:focus,
-.futoshiki-number-line .futoshiki-tail:focus-visible,
-.futoshiki-board-mock__cell.is-selected,
-.futoshiki-board-mock__cell.is-invalid,
-.futoshiki-board-mock__cell.is-selected.is-invalid {
+.futoshiki-number-line .futoshiki-tail:focus-visible {
   appearance: none;
   -webkit-tap-highlight-color: transparent;
   border: 0;
@@ -405,20 +207,6 @@
   outline: 0;
   overflow: visible;
   transform: none;
-}
-
-.futoshiki-tail.is-invalid::before {
-  content: "";
-  z-index: 0;
-  width: 108%;
-  height: 100%;
-  grid-area: 1 / 1;
-  border-radius: 24%;
-  border: 2px solid rgba(255, 48, 66, 0.5);
-  box-shadow:
-    0 0 4px 1px rgba(255, 48, 66, 0.66),
-    0 0 4px 1px rgba(255, 48, 66, 0.28);
-  pointer-events: none;
 }
 
 .futoshiki-help-modal {
@@ -616,14 +404,6 @@
   opacity: 1;
 }
 
-.futoshiki-how-to-play .futoshiki-tail__value {
-  font-size: clamp(1.45rem, 5.2vw, 2.5rem);
-}
-
-.futoshiki-how-to-play .futoshiki-board-mock__arrow-glyph {
-  transform: translate(var(--futoshiki-arrow-x), var(--futoshiki-arrow-y)) scale(0.82);
-}
-
 .futoshiki-how-to-play__guide-line {
   position: relative;
   display: grid;
@@ -811,16 +591,8 @@
     padding: 0 14px;
   }
 
-  .futoshiki-game-controls-row {
-    gap: 14px;
-  }
-
   .futoshiki-title-name {
     gap: 8px;
-  }
-
-  .futoshiki-board-block {
-    min-height: min(44vh, 420px);
   }
 
   .futoshiki-number-block {
