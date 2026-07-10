@@ -189,6 +189,7 @@ const newGameTailFlipAnimation = createNewGameTailFlipAnimation({
   tailFlipMs: 500,
   lineStartDelayMs: 80,
 });
+const NEW_GAME_ARROW_CHANGE_DELAY_MS = 250;
 
 function createResetTailRiseAnimation(config: ResetTailRiseAnimationConfig) {
   const origin = {
@@ -385,12 +386,11 @@ export function GameArea({
                 cell,
                 resetAnimationRunId
               );
-              const previousNewGameNotes =
-                newGameAnimationSnapshot
-                  ? newGameAnimationSnapshot.boardNotes[boardRowIndex][
-                      boardColumnIndex
-                    ]
-                  : boardNotes[boardRowIndex][boardColumnIndex];
+              const previousNewGameNotes = newGameAnimationSnapshot
+                ? newGameAnimationSnapshot.boardNotes[boardRowIndex][
+                    boardColumnIndex
+                  ]
+                : boardNotes[boardRowIndex][boardColumnIndex];
               const previousNewGameValue = newGameAnimationSnapshot
                 ? newGameAnimationSnapshot.boardValues[boardRowIndex][
                     boardColumnIndex
@@ -409,12 +409,11 @@ export function GameArea({
                 newGameAnimationSnapshot?.validation.duplicateCellKeys.has(
                   getCellKey(cell)
                 ) ?? hasDuplicateError;
-              const previousResetNotes =
-                resetAnimationSnapshot
-                  ? resetAnimationSnapshot.boardNotes[boardRowIndex][
-                      boardColumnIndex
-                    ]
-                  : boardNotes[boardRowIndex][boardColumnIndex];
+              const previousResetNotes = resetAnimationSnapshot
+                ? resetAnimationSnapshot.boardNotes[boardRowIndex][
+                    boardColumnIndex
+                  ]
+                : boardNotes[boardRowIndex][boardColumnIndex];
               const previousResetValue = resetAnimationSnapshot
                 ? resetAnimationSnapshot.boardValues[boardRowIndex][
                     boardColumnIndex
@@ -470,10 +469,9 @@ export function GameArea({
               const arrowKey = `${boardRowIndex}-${arrowColumnIndex}`;
               const arrowDirection = level.horizontalArrows[arrowKey];
               const hasArrowError = brokenArrowKeys.has(`h-${arrowKey}`);
-              const previousNewGameArrowDirection =
-                newGameAnimationSnapshot
-                  ? newGameAnimationSnapshot.level.horizontalArrows[arrowKey]
-                  : arrowDirection;
+              const previousNewGameArrowDirection = newGameAnimationSnapshot
+                ? newGameAnimationSnapshot.level.horizontalArrows[arrowKey]
+                : arrowDirection;
               const previousNewGameHasArrowError =
                 newGameAnimationSnapshot?.validation.brokenArrowKeys.has(
                   `h-${arrowKey}`
@@ -500,7 +498,9 @@ export function GameArea({
                   newGameAnimation={
                     newGameArrowAnimation
                       ? {
-                          delayMs: newGameArrowAnimation.delayMs,
+                          delayMs:
+                            newGameArrowAnimation.delayMs +
+                            NEW_GAME_ARROW_CHANGE_DELAY_MS,
                           fromDirection: previousNewGameArrowDirection,
                           fromIsInvalid: previousNewGameHasArrowError,
                           runId: newGameArrowAnimation.runId,
@@ -522,10 +522,9 @@ export function GameArea({
               const arrowKey = `${arrowRowIndex}-${boardColumnIndex}`;
               const arrowDirection = level.verticalArrows[arrowKey];
               const hasArrowError = brokenArrowKeys.has(`v-${arrowKey}`);
-              const previousNewGameArrowDirection =
-                newGameAnimationSnapshot
-                  ? newGameAnimationSnapshot.level.verticalArrows[arrowKey]
-                  : arrowDirection;
+              const previousNewGameArrowDirection = newGameAnimationSnapshot
+                ? newGameAnimationSnapshot.level.verticalArrows[arrowKey]
+                : arrowDirection;
               const previousNewGameHasArrowError =
                 newGameAnimationSnapshot?.validation.brokenArrowKeys.has(
                   `v-${arrowKey}`
@@ -549,7 +548,9 @@ export function GameArea({
                   newGameAnimation={
                     newGameArrowAnimation
                       ? {
-                          delayMs: newGameArrowAnimation.delayMs,
+                          delayMs:
+                            newGameArrowAnimation.delayMs +
+                            NEW_GAME_ARROW_CHANGE_DELAY_MS,
                           fromDirection: previousNewGameArrowDirection,
                           fromIsInvalid: previousNewGameHasArrowError,
                           runId: newGameArrowAnimation.runId,

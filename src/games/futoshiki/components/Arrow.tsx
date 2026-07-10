@@ -99,6 +99,7 @@ export function Arrow({
 
   useEffect(() => {
     if (!newGameAnimation || newGameAnimation.runId === 0) {
+      setSwitchedRunId(0);
       return;
     }
 

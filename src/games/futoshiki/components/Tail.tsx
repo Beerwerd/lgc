@@ -259,6 +259,7 @@ export function Tail(props: TailProps) {
       !flipFrontRef.current ||
       !flipBackRef.current
     ) {
+      setReleasedFlipBackRunId(0);
       return;
     }
 
