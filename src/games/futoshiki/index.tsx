@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
 import type { GameModule, GameRuntimeProps } from "../../platform/types";
 import clearIconImage from "./assets/clear_icon.png";
 import newIconImage from "./assets/new_icon.png";
@@ -12,6 +11,7 @@ import { Arrow } from "./components/Arrow";
 import { Button } from "./components/Button";
 import { DifficultySelector } from "./components/DifficultySelector";
 import { GameName } from "./components/GameName";
+import { HowToPlayDialog } from "./components/HowToPlayDialog";
 import { Tail } from "./components/Tail";
 import "./futoshiki.css";
 import {
@@ -81,7 +81,8 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
         event.metaKey ||
         event.target instanceof HTMLInputElement ||
         event.target instanceof HTMLTextAreaElement ||
-        (event.target instanceof HTMLElement && event.target.isContentEditable) ||
+        (event.target instanceof HTMLElement &&
+          event.target.isContentEditable) ||
         isHelpModalOpen ||
         isCompletionModalOpen
       ) {
@@ -105,12 +106,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [
-    clearSelectedCell,
-    isCompletionModalOpen,
-    isHelpModalOpen,
-    selectNumber,
-  ]);
+  }, [clearSelectedCell, isCompletionModalOpen, isHelpModalOpen, selectNumber]);
 
   const startNextLevel = () => {
     resetLevel();
@@ -261,43 +257,14 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
       </section>
 
       {isHelpModalOpen && (
-        <div
-          className={`futoshiki-help-modal${
-            isHelpModalClosing ? " is-closing" : ""
-          }`}
-          onAnimationEnd={(event) => {
-            if (event.currentTarget === event.target && isHelpModalClosing) {
-              setIsHelpModalOpen(false);
-              setIsHelpModalClosing(false);
-            }
+        <HowToPlayDialog
+          isClosing={isHelpModalClosing}
+          onClose={closeHelpModal}
+          onClosed={() => {
+            setIsHelpModalOpen(false);
+            setIsHelpModalClosing(false);
           }}
-          onPointerDown={(event) => {
-            event.stopPropagation();
-            if (event.currentTarget === event.target) {
-              closeHelpModal();
-            }
-          }}
-        >
-          <section
-            className="futoshiki-help-modal__dialog"
-            onPointerDown={(event) => event.stopPropagation()}
-          >
-            <button
-              className="futoshiki-help-modal__close"
-              type="button"
-              onClick={closeHelpModal}
-            >
-              <X size={22} />
-            </button>
-
-            <h4>How to play</h4>
-            <p>
-              Every row and column must contain each number from 1 to 5 exactly
-              once. The small end of every inequality sign must hold the smaller
-              value.
-            </p>
-          </section>
-        </div>
+        />
       )}
 
       {isCompletionModalOpen && (

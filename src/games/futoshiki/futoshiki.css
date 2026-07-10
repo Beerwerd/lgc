@@ -286,11 +286,14 @@
 
 .futoshiki-board-mock__arrow-glyph.is-right,
 .futoshiki-board-mock__arrow-glyph.is-left {
-  --futoshiki-arrow-x: -2px;
+  --futoshiki-arrow-x: -4px;
 }
 
+.futoshiki-board-mock__arrow-glyph.is-up {
+  --futoshiki-arrow-y: -3px;
+}
 .futoshiki-board-mock__arrow-glyph.is-down {
-  --futoshiki-arrow-y: -2px;
+  --futoshiki-arrow-y: -4px;
 }
 
 .futoshiki-board-actions {
@@ -397,7 +400,9 @@
   display: grid;
   place-items: center;
   padding: clamp(18px, 5vw, 42px);
-  background: rgba(23, 21, 18, 0.18);
+  background: rgba(23, 21, 18, 0.22);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   animation: futoshiki-modal-fade-in 180ms ease-in-out both;
 }
 
@@ -417,6 +422,258 @@
   background: #fdfcf8;
   box-shadow: 0 24px 80px rgba(23, 21, 18, 0.2);
   animation: futoshiki-modal-pop-in 220ms ease-in-out both;
+}
+
+.futoshiki-how-to-play {
+  --futoshiki-help-tail-gap: clamp(3px, 1.1vw, 6px);
+  --futoshiki-help-tail-size: clamp(34px, 7.4vw, 50px);
+
+  width: min(92vw, 570px);
+  max-height: min(88vh, 820px);
+  gap: clamp(10px, 2vw, 16px);
+  padding: clamp(18px, 4vw, 30px);
+  border: 0;
+  border-radius: clamp(26px, 7vw, 48px);
+  background-color: #e7791f;
+  background:
+    linear-gradient(180deg, #d96a17 0%, #954508 100%);
+  box-shadow:
+    0 28px 80px rgba(21, 8, 5, 0.48),
+    inset 0 0 0 2px rgba(255, 224, 146, 0.48);
+  overflow: visible;
+}
+
+.futoshiki-how-to-play__header {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+}
+
+.futoshiki-how-to-play__title-button {
+  width: min(84%, 470px) !important;
+  cursor: default;
+}
+
+.futoshiki-how-to-play__title-button > span {
+  width: 100% !important;
+  min-width: 0 !important;
+  border-radius: clamp(14px, 4vw, 24px) !important;
+  transform: translateZ(0) scale(1) !important;
+  transition: none !important;
+}
+
+.futoshiki-how-to-play__title-image {
+  display: block;
+  width: auto;
+  max-width: 92%;
+  height: auto;
+  max-height: 88%;
+  object-fit: contain;
+}
+
+.futoshiki-how-to-play__close {
+  position: absolute !important;
+  top: clamp(36px, 3.5vw, 26px);
+  right: clamp(16px, 3.5vw, 26px);
+  z-index: 4;
+}
+
+.futoshiki-how-to-play__close > span {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.futoshiki-how-to-play__content {
+  display: grid;
+  gap: clamp(12px, 2.6vw, 18px);
+  padding: clamp(10px, 2.4vw, 16px);
+  border-radius: clamp(20px, 5vw, 34px);
+  background: linear-gradient(180deg, #fff2cf 0%, #ffe3ad 100%);
+  box-shadow:
+    inset 0 0 0 3px rgba(126, 70, 20, 0.18),
+    inset 0 0 20px rgba(122, 66, 18, 0.12);
+  overflow-y: auto;
+}
+
+.futoshiki-how-to-play__rule {
+  display: grid;
+  gap: clamp(10px, 2.2vw, 16px);
+  padding: clamp(14px, 3vw, 22px);
+  border: 2px solid rgba(157, 95, 34, 0.36);
+  border-radius: clamp(16px, 4vw, 26px);
+  background: rgba(255, 242, 209, 0.76);
+  box-shadow: inset 0 1px 7px rgba(89, 45, 15, 0.08);
+}
+
+.futoshiki-help-modal .futoshiki-how-to-play__rule p {
+  margin: 0;
+  color: #4b210f;
+  font-family: "Futoshiki Baloo 2", system-ui, sans-serif;
+  font-size: clamp(1.55rem, 5vw, 2.35rem);
+  font-weight: 850;
+  line-height: 1.12;
+  text-shadow: 0 2px 0 rgba(255, 235, 180, 0.8);
+}
+
+.futoshiki-how-to-play__numbers-demo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(16px, 3vw, 24px);
+  align-items: stretch;
+}
+
+.futoshiki-how-to-play__row-set,
+.futoshiki-how-to-play__column-set,
+.futoshiki-how-to-play__comparison {
+  display: flex;
+  align-items: center;
+}
+
+.futoshiki-how-to-play__row-set {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: clamp(8px, 2vw, 14px);
+}
+
+.futoshiki-how-to-play__row-explain {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: clamp(60px, 2.2vw, 16px);
+}
+
+.futoshiki-how-to-play__row-guide {
+  display: grid;
+  position: relative;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.futoshiki-how-to-play__row-guide > .futoshiki-how-to-play__status-icon {
+  position: absolute;
+  top: 0;
+  right: clamp(-8px, -1.6vw, -4px);
+}
+
+.futoshiki-how-to-play__row-copy {
+  align-self: end;
+}
+
+.futoshiki-how-to-play__column-set {
+  align-items: stretch;
+  gap: clamp(6px, 1.5vw, 10px);
+}
+
+.futoshiki-how-to-play__tail-row {
+  display: grid;
+  width: max-content;
+  grid-template-columns: repeat(5, var(--futoshiki-help-tail-size));
+  gap: var(--futoshiki-help-tail-gap);
+  align-items: center;
+}
+
+.futoshiki-how-to-play__tail-column {
+  display: grid;
+  grid-template-rows: repeat(5, var(--futoshiki-help-tail-size));
+  gap: var(--futoshiki-help-tail-gap);
+}
+
+.futoshiki-how-to-play .futoshiki-tail {
+  width: var(--futoshiki-help-tail-size);
+  height: var(--futoshiki-help-tail-size);
+  flex: 0 0 auto;
+  cursor: default;
+}
+
+.futoshiki-how-to-play .futoshiki-tail:disabled {
+  opacity: 1;
+}
+
+.futoshiki-how-to-play .futoshiki-tail__value {
+  font-size: clamp(1.45rem, 5.2vw, 2.5rem);
+}
+
+.futoshiki-how-to-play .futoshiki-board-mock__arrow-glyph {
+  transform: translate(var(--futoshiki-arrow-x), var(--futoshiki-arrow-y)) scale(0.82);
+}
+
+.futoshiki-how-to-play__guide-line {
+  position: relative;
+  display: grid;
+  width: calc(var(--futoshiki-help-tail-size) * 5 + var(--futoshiki-help-tail-gap) * 4);
+  height: 14px;
+  grid-template-columns: repeat(5, var(--futoshiki-help-tail-size));
+  column-gap: var(--futoshiki-help-tail-gap);
+  align-items: center;
+  isolation: isolate;
+}
+
+.futoshiki-how-to-play__guide-line::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--futoshiki-help-tail-size) / 2);
+  right: calc(var(--futoshiki-help-tail-size) / 2);
+  top: 50%;
+  z-index: -1;
+  height: 2px;
+  border-radius: 999px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(184, 100, 29, 0.82) 0 11px,
+    transparent 11px 21px
+  );
+  transform: translateY(-50%);
+}
+
+.futoshiki-how-to-play__guide-line span {
+  justify-self: center;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #da7626;
+  box-shadow: 0 0 0 1px rgba(117, 55, 17, 0.36);
+}
+
+.futoshiki-how-to-play__guide-line--vertical {
+  width: 14px;
+  height: calc(var(--futoshiki-help-tail-size) * 5 + var(--futoshiki-help-tail-gap) * 4);
+  grid-template-columns: none;
+  grid-template-rows: repeat(5, var(--futoshiki-help-tail-size));
+  row-gap: var(--futoshiki-help-tail-gap);
+  justify-items: center;
+}
+
+.futoshiki-how-to-play__guide-line--vertical::before {
+  left: 50%;
+  right: auto;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  height: auto;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(184, 100, 29, 0.82) 0 11px,
+    transparent 11px 21px
+  );
+  transform: translateX(-50%);
+}
+
+.futoshiki-how-to-play__status-icon {
+  display: block;
+  width: clamp(34px, 7.8vw, 56px);
+  height: clamp(34px, 7.8vw, 56px);
+  object-fit: contain;
+  filter: drop-shadow(0 5px 5px rgba(83, 43, 13, 0.22));
+}
+
+.futoshiki-how-to-play__comparison {
+  justify-content: center;
+  gap: clamp(12px, 4vw, 34px);
+}
+
+.futoshiki-how-to-play__rule-divider {
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(124, 72, 25, 0.34);
 }
 
 .futoshiki-help-modal.is-closing .futoshiki-help-modal__dialog {

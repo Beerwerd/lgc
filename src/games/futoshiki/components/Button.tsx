@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes, CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import blueKeyImage from "../assets/blue_key.png";
+import brownKeyImage from "../assets/brown_key.png";
 import greenKeyImage from "../assets/green_key.png";
 import lightBlueKeyImage from "../assets/light_blue_key.png";
 import orangeKeyImage from "../assets/orange_key.png";
@@ -49,7 +50,7 @@ type ButtonAppearance =
 
 const buttonAppearances: Record<ButtonVariant, ButtonAppearance> = {
   blue: { type: "image", image: blueKeyImage },
-  brown: { type: "color", color: "#512316" },
+  brown: { type: "image", image: brownKeyImage },
   green: { type: "image", image: greenKeyImage },
   lightBlue: { type: "image", image: lightBlueKeyImage },
   orange: { type: "image", image: orangeKeyImage },
