@@ -107,18 +107,53 @@ const buttonPressedGlows: Record<
   },
 };
 
-const centerSliceCache = new Map<string, string>();
-
 type ButtonImageParts = {
+  capAspectRatio: string;
+  capAspectRatioValue: number;
   centerSlice: string;
+  hasSlices: boolean;
   image: string;
+  leftCapSlice: string;
+  rightCapSlice: string;
 };
+
+const imagePartsCache = new Map<string, ButtonImageParts>();
 
 function createButtonImageParts(image: string): ButtonImageParts {
   return {
-    centerSlice: image ? centerSliceCache.get(image) ?? image : "",
+    capAspectRatio: "0.5 / 1",
+    capAspectRatioValue: 0.5,
+    centerSlice: image,
+    hasSlices: false,
     image,
+    leftCapSlice: image,
+    rightCapSlice: image,
   };
+}
+
+function createImageSlice(
+  sourceImage: HTMLImageElement,
+  sourceX: number,
+  sourceWidth: number
+) {
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  canvas.width = sourceWidth;
+  canvas.height = sourceImage.naturalHeight;
+  context?.drawImage(
+    sourceImage,
+    sourceX,
+    0,
+    sourceWidth,
+    sourceImage.naturalHeight,
+    0,
+    0,
+    sourceWidth,
+    sourceImage.naturalHeight
+  );
+
+  return canvas.toDataURL("image/png");
 }
 
 function useButtonImageParts(image: string | undefined) {
@@ -129,17 +164,14 @@ function useButtonImageParts(image: string | undefined) {
 
   useEffect(() => {
     if (!requestedImage) {
-      setResolvedParts({ centerSlice: "", image: "" });
+      setResolvedParts(createButtonImageParts(""));
       return;
     }
 
-    const cachedSlice = centerSliceCache.get(requestedImage);
+    const cachedParts = imagePartsCache.get(requestedImage);
 
-    if (cachedSlice) {
-      setResolvedParts({
-        centerSlice: cachedSlice,
-        image: requestedImage,
-      });
+    if (cachedParts) {
+      setResolvedParts(cachedParts);
       return;
     }
 
@@ -147,41 +179,32 @@ function useButtonImageParts(image: string | undefined) {
     const sourceImage = new Image();
 
     sourceImage.onload = () => {
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d");
-      const sourceX = Math.floor(sourceImage.naturalWidth / 2);
+      const centerX = Math.floor(sourceImage.naturalWidth / 2);
+      const capWidth = Math.ceil(sourceImage.naturalWidth / 2);
+      const parts = {
+        capAspectRatio: `${capWidth} / ${sourceImage.naturalHeight}`,
+        capAspectRatioValue: capWidth / sourceImage.naturalHeight,
+        centerSlice: createImageSlice(sourceImage, centerX, 1),
+        hasSlices: true,
+        image: requestedImage,
+        leftCapSlice: createImageSlice(sourceImage, 0, capWidth),
+        rightCapSlice: createImageSlice(
+          sourceImage,
+          sourceImage.naturalWidth - capWidth,
+          capWidth
+        ),
+      };
 
-      canvas.width = 1;
-      canvas.height = sourceImage.naturalHeight;
-      context?.drawImage(
-        sourceImage,
-        sourceX,
-        0,
-        1,
-        sourceImage.naturalHeight,
-        0,
-        0,
-        1,
-        sourceImage.naturalHeight
-      );
-
-      const slice = canvas.toDataURL("image/png");
-      centerSliceCache.set(requestedImage, slice);
+      imagePartsCache.set(requestedImage, parts);
 
       if (!isCancelled) {
-        setResolvedParts({
-          centerSlice: slice,
-          image: requestedImage,
-        });
+        setResolvedParts(parts);
       }
     };
 
     sourceImage.onerror = () => {
       if (!isCancelled) {
-        setResolvedParts({
-          centerSlice: requestedImage,
-          image: requestedImage,
-        });
+        setResolvedParts(createButtonImageParts(requestedImage));
       }
     };
 
@@ -192,19 +215,16 @@ function useButtonImageParts(image: string | undefined) {
     };
   }, [requestedImage]);
 
-  const cachedSlice = requestedImage
-    ? centerSliceCache.get(requestedImage)
-    : "";
+  const cachedParts = requestedImage
+    ? imagePartsCache.get(requestedImage)
+    : undefined;
 
   if (!requestedImage) {
-    return { centerSlice: "", image: "" };
+    return createButtonImageParts("");
   }
 
-  if (cachedSlice) {
-    return {
-      centerSlice: cachedSlice,
-      image: requestedImage,
-    };
+  if (cachedParts) {
+    return cachedParts;
   }
 
   if (resolvedParts.image === requestedImage) {
@@ -231,6 +251,8 @@ export function Button({
 }: ButtonProps) {
   const [isActive, setIsActive] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [stretchFaceHeight, setStretchFaceHeight] = useState(0);
+  const faceRef = useRef<HTMLSpanElement>(null);
   const releaseActiveTimeoutRef = useRef<number | null>(null);
   const isFill = size === "fill";
   const isStretch = size === "stretch";
@@ -251,6 +273,9 @@ export function Button({
   const visibleKeyImage = buttonImageParts.image || keyImage;
   const hasTextContent = children !== undefined && children !== null;
   const isPressing = pressing || isActive;
+  const isRatioPreservedStretch = isStretch && appearance.type === "image";
+  const hasRatioPreservedSlices =
+    isRatioPreservedStretch && buttonImageParts.hasSlices;
 
   const cancelScheduledActiveRelease = () => {
     if (releaseActiveTimeoutRef.current === null) {
@@ -275,6 +300,45 @@ export function Button({
     },
     []
   );
+
+  useEffect(() => {
+    if (!isRatioPreservedStretch) {
+      setStretchFaceHeight(0);
+      return;
+    }
+
+    const faceElement = faceRef.current;
+
+    if (!faceElement) {
+      return;
+    }
+
+    const updateStretchFaceHeight = () => {
+      const nextHeight = faceElement.getBoundingClientRect().height;
+
+      setStretchFaceHeight((currentHeight) =>
+        Math.abs(currentHeight - nextHeight) < 0.5 ? currentHeight : nextHeight
+      );
+    };
+
+    updateStretchFaceHeight();
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(updateStretchFaceHeight);
+    resizeObserver.observe(faceElement);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [isRatioPreservedStretch]);
+
+  const stretchCapWidth =
+    isRatioPreservedStretch && stretchFaceHeight > 0
+      ? `${stretchFaceHeight * buttonImageParts.capAspectRatioValue}px`
+      : capSize;
 
   const buttonStyle: CSSProperties = {
     position: "relative",
@@ -307,15 +371,18 @@ export function Button({
 
   const faceStyle: CSSProperties = {
     position: "relative",
-    display: "grid",
+    display: isRatioPreservedStretch ? "flex" : "grid",
     width: isFill ? "96%" : isStretch ? "100%" : "max-content",
     minWidth: faceSize,
     height: isStretch ? "100%" : "96%",
-    gridTemplateColumns: `${capSize} minmax(0, 1fr) ${capSize}`,
-    gridTemplateRows: "100%",
+    gridTemplateColumns: isRatioPreservedStretch
+      ? undefined
+      : `${capSize} minmax(0, 1fr) ${capSize}`,
+    gridTemplateRows: isRatioPreservedStretch ? undefined : "100%",
+    alignItems: isRatioPreservedStretch ? "stretch" : undefined,
     marginInline: isFill || isStretch ? undefined : faceMargin,
-    overflow: isPressing ? "visible" : "hidden",
-    borderRadius: "17%",
+    overflow: isRatioPreservedStretch || isPressing ? "visible" : "hidden",
+    borderRadius: isRatioPreservedStretch ? 0 : "17%",
     backfaceVisibility: "hidden",
     pointerEvents: "none",
     transition: "transform 120ms ease",
@@ -338,26 +405,46 @@ export function Button({
   };
 
   const capStyle: CSSProperties = {
+    display: "block",
     minWidth: 0,
+    width: isRatioPreservedStretch ? stretchCapWidth : undefined,
     height: "100%",
+    aspectRatio: isRatioPreservedStretch
+      ? buttonImageParts.capAspectRatio
+      : undefined,
+    flex: isRatioPreservedStretch
+      ? `0 0 ${stretchCapWidth}`
+      : undefined,
     backgroundColor: appearance.type === "color" ? appearance.color : undefined,
     backgroundImage: visibleKeyImage ? `url(${visibleKeyImage})` : undefined,
     backgroundRepeat: "no-repeat",
-    backgroundSize: `${faceSize} 100%`,
+    backgroundSize: hasRatioPreservedSlices
+      ? "100% 100%"
+      : isRatioPreservedStretch
+        ? "auto 100%"
+        : `${faceSize} 100%`,
   };
 
   const leftCapStyle: CSSProperties = {
     ...capStyle,
     zIndex: 1,
-    gridColumn: "1",
-    gridRow: "1",
+    gridColumn: isRatioPreservedStretch ? undefined : "1",
+    gridRow: isRatioPreservedStretch ? undefined : "1",
+    backgroundImage: visibleKeyImage
+      ? `url(${
+          hasRatioPreservedSlices
+            ? buttonImageParts.leftCapSlice
+            : visibleKeyImage
+        })`
+      : undefined,
     backgroundPosition: "left center",
   };
 
   const centerStyle: CSSProperties = {
     zIndex: 1,
-    gridColumn: "2",
-    gridRow: "1",
+    gridColumn: isRatioPreservedStretch ? undefined : "2",
+    gridRow: isRatioPreservedStretch ? undefined : "1",
+    flex: isRatioPreservedStretch ? "1 1 auto" : undefined,
     minWidth: 0,
     height: "100%",
     backgroundColor: appearance.type === "color" ? appearance.color : undefined,
@@ -372,16 +459,24 @@ export function Button({
   const rightCapStyle: CSSProperties = {
     ...capStyle,
     zIndex: 1,
-    gridColumn: "3",
-    gridRow: "1",
+    gridColumn: isRatioPreservedStretch ? undefined : "3",
+    gridRow: isRatioPreservedStretch ? undefined : "1",
+    backgroundImage: visibleKeyImage
+      ? `url(${
+          hasRatioPreservedSlices
+            ? buttonImageParts.rightCapSlice
+            : visibleKeyImage
+        })`
+      : undefined,
     backgroundPosition: "right center",
   };
 
   const contentStyle: CSSProperties = {
-    position: "relative",
-    zIndex: 1,
-    gridColumn: "1 / -1",
-    gridRow: "1",
+    position: isRatioPreservedStretch ? "absolute" : "relative",
+    inset: isRatioPreservedStretch ? 0 : undefined,
+    zIndex: 2,
+    gridColumn: isRatioPreservedStretch ? undefined : "1 / -1",
+    gridRow: isRatioPreservedStretch ? undefined : "1",
     display: "flex",
     minWidth: 0,
     height: "100%",
@@ -439,7 +534,7 @@ export function Button({
         onPointerLeave?.(event);
       }}
     >
-      <span style={faceStyle}>
+      <span ref={faceRef} style={faceStyle}>
         {isPressing ? (
           <span aria-hidden="true" style={pressedGlowStyle} />
         ) : null}

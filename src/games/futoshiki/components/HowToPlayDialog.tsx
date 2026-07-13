@@ -1,7 +1,7 @@
 import cancelIconImage from "../assets/cancel_icon.png";
 import cancelRedIconImage from "../assets/cancel_red_icon.png";
 import doneGreenIconImage from "../assets/done_green_icon.png";
-import howToPlayImage from "../assets/how_to_play.png";
+import borderImage from "../assets/border.png";
 import { NUMBER_OPTIONS } from "../logic";
 import { Arrow } from "./Arrow";
 import { Button } from "./Button";
@@ -42,23 +42,6 @@ export function HowToPlayDialog({
         aria-label="How to Play"
         onPointerDown={(event) => event.stopPropagation()}
       >
-        <div className="futoshiki-how-to-play__header">
-          <Button
-            className="futoshiki-how-to-play__title-button"
-            variant="brown"
-            size="stretch"
-            style={{ height: "clamp(82px, 15vw, 110px)" }}
-            tabIndex={-1}
-            aria-hidden="true"
-          >
-            <img
-              className="futoshiki-how-to-play__title-image"
-              src={howToPlayImage}
-              alt=""
-              aria-hidden="true"
-            />
-          </Button>
-        </div>
         <Button
           className="futoshiki-how-to-play__close"
           icon={cancelIconImage}
@@ -180,6 +163,12 @@ export function HowToPlayDialog({
             <p>The small end points to the smaller number.</p>
           </section>
         </div>
+        <img
+          className="futoshiki-how-to-play__border"
+          src={borderImage}
+          alt=""
+          aria-hidden="true"
+        />
       </section>
     </div>
   );

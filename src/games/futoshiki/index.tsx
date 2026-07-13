@@ -3,7 +3,7 @@ import type { GameModule, GameRuntimeProps } from "../../platform/types";
 import clearIconImage from "./assets/clear_icon.png";
 import coverImage from "./cover.png";
 import { ActionButton } from "./components/ActionButton";
-import { Button } from "./components/Button";
+import { CompletedDialog } from "./components/CompletedDialog";
 import { GameArea } from "./components/GameArea";
 import { GameName } from "./components/GameName";
 import { HowToPlayDialog } from "./components/HowToPlayDialog";
@@ -199,22 +199,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
         />
       )}
 
-      {isCompletionModalOpen && (
-        <div
-          className="futoshiki-help-modal futoshiki-complete-modal"
-          onPointerDown={(event) => event.stopPropagation()}
-        >
-          <section
-            className="futoshiki-help-modal__dialog futoshiki-complete-modal__dialog"
-            onPointerDown={(event) => event.stopPropagation()}
-          >
-            <h4>Completed!</h4>
-            <Button variant="green" onClick={startNextLevel}>
-              Next
-            </Button>
-          </section>
-        </div>
-      )}
+      {isCompletionModalOpen && <CompletedDialog onNext={startNextLevel} />}
     </div>
   );
 }
