@@ -50,6 +50,7 @@ export function HowToPlayDialog({
             width: "clamp(48px, 11vw, 66px)",
             height: "clamp(48px, 11vw, 66px)",
             minWidth: "clamp(48px, 11vw, 66px)",
+            zIndex: 4,
           }}
           aria-label="Close"
           onClick={onClose}
