@@ -25,6 +25,7 @@ export type ButtonProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   "type"
 > & {
+  disablePressedGlow?: boolean;
   icon?: string;
   pressing?: boolean;
   size?: ButtonSize;
@@ -236,6 +237,7 @@ function useButtonImageParts(image: string | undefined) {
 
 export function Button({
   children,
+  disablePressedGlow = false,
   icon,
   pressing = false,
   size = "default",
@@ -535,7 +537,7 @@ export function Button({
       }}
     >
       <span ref={faceRef} style={faceStyle}>
-        {isPressing ? (
+        {isPressing && !disablePressedGlow ? (
           <span aria-hidden="true" style={pressedGlowStyle} />
         ) : null}
         <span aria-hidden="true" style={leftCapStyle} />

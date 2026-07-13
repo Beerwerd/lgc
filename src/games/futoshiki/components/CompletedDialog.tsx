@@ -143,7 +143,6 @@ const completedDialogStyles = `
   width: clamp(170px, 34%, 246px);
   height: clamp(58px, 9vw, 72px);
   margin-top: clamp(5px, 1vw, 8px);
-  filter: drop-shadow(0 8px 5px rgba(42, 45, 19, 0.34));
 }
 
 .futoshiki-complete-modal__button button {
@@ -203,7 +202,12 @@ export function CompletedDialog({ onNext }: CompletedDialogProps) {
               <span aria-hidden="true" />
             </div>
             <div className="futoshiki-complete-modal__button">
-              <Button variant="green" size="stretch" onClick={onNext}>
+              <Button
+                disablePressedGlow
+                variant="green"
+                size="stretch"
+                onClick={onNext}
+              >
                 Next
               </Button>
             </div>
