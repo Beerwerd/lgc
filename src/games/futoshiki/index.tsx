@@ -12,6 +12,7 @@ import "./futoshiki.css";
 import {
   NUMBER_OPTIONS,
   useFutoshikiGameState,
+  type BoardCell,
   type Difficulty,
 } from "./logic";
 import previewGif from "./preview.gif";
@@ -57,6 +58,17 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
 
   const toggleNotesMode = () => {
     setIsNotesModeSelected((isSelected) => !isSelected);
+  };
+
+  const handleCellSelect = (cell: BoardCell) => {
+    selectCell(cell);
+
+    if (
+      !isNotesModeSelected &&
+      boardNotes[cell.rowIndex][cell.columnIndex].length >= 2
+    ) {
+      setIsNotesModeSelected(true);
+    }
   };
 
   const handleNumberSelect = (number: number) => {
@@ -149,7 +161,7 @@ function FutoshikiGame({ resources }: GameRuntimeProps) {
         level={level}
         onOpenHelpModal={openHelpModal}
         onResetBoard={resetBoard}
-        onSelectCell={selectCell}
+        onSelectCell={handleCellSelect}
         onStartNewLevel={startNewLevel}
         onToggleNotesMode={toggleNotesMode}
       />
